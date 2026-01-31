@@ -17,7 +17,7 @@ static MeshButton meshButtons[] =
 {
     { "Cube",     assets + "\\Cube.fbx",     "Cube" },
     { "Plane",    assets + "\\Plane.fbx",    "Plane" },
-    { "Ball",     assets + "\\BallSUS.fbx",  "Ball" },
+    { "Ball",     assets + "\\Ball.fbx",  "Ball" },
     { "Cylinder", assets + "\\Cylinder.fbx", "Cylinder"}
 };
 

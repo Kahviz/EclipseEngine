@@ -52,6 +52,7 @@ set(IMGUI_SOURCES
 # ---- Add Executable ----
 add_executable(
     UntilitedGameEngine
+    Core/SetupPaths/MakeFiles.cpp
     main.cpp
     Core/Camera/Camera.cpp
     Core/ErrorHandling/Expectation/Expection.cpp
@@ -100,7 +101,7 @@ target_compile_definitions(UntilitedGameEngine PRIVATE PROJECT_DIR="${CMAKE_SOUR
 if(WIN32)
     target_link_libraries(UntilitedGameEngine PRIVATE
         gdi32
-    )
+)
     
     # Kopioi vulkan-1.dll output kansioon
     if(EXISTS "${VULKAN_SDK_PATH}/Bin/vulkan-1.dll")

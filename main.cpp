@@ -1,7 +1,10 @@
 ﻿#include <iostream>
 #include "Runtime/Engine.h"
+#include "SetupPaths/MakeFiles.h"
 
 int main() {
+    MakeFiles mf;
+    mf.MakeAPPDATAFolders();
     try {
         Engine engine;
         engine.EngineRun();

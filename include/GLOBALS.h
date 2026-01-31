@@ -1,7 +1,7 @@
 // Globals.h
 #pragma once
 #include <string>
-#define INEDITOR 0 //Laita 1
+#define INEDITOR 1 //Laita 1
 #define DIRECTX11 0 //1 = true
 
 extern int screen_width;
@@ -14,6 +14,7 @@ extern std::string appData;
 extern std::string fonts;
 extern std::string assets;
 extern std::string ProjectName;
+
 extern bool InEditor;
 extern int Index;
 extern bool vSync;
