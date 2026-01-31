@@ -68,9 +68,11 @@ add_executable(
 
     Core/Runtime/Engine.cpp
     Core/Window/Window.cpp
-
+    Core/Graphics/Dx11/Dx11Renderer.cpp
+    Core/Graphics/Vulkan/VulkanRender.cpp
+    Core/Graphics/Vulkan/ScoreCounter.cpp
     ${IMGUI_SOURCES}
- "Core/Graphics/Dx11/Dx11Renderer.cpp")
+)
 
 # ---- Include directories ----
 target_include_directories(UntilitedGameEngine PRIVATE

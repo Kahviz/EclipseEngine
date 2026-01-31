@@ -13,6 +13,7 @@
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_dx11.h"
+#include <imgui_impl_vulkan.h>
 
 static bool imguiInitialized = false;
 
@@ -36,8 +37,17 @@ Engine::Engine()
             throw std::runtime_error("Failed to initialize ImGui GLFW backend");
         }
 
-        if (!ImGui_ImplDX11_Init(device, contextDX11)) {
-            throw std::runtime_error("Failed to initialize ImGui DX11 backend");
+        if (UsesDx11) {
+            if (!ImGui_ImplDX11_Init(device, contextDX11)) {
+                throw std::runtime_error("Failed to initialize ImGui DX11 backend");
+            }
+        }
+        if (UsesVulkan) {
+            /*
+            * if (!ImGui_ImplVulkan_Init()) {
+                throw std::runtime_error("Failed to initialize ImGui Vulkan backend");
+            }
+            */
         }
 
         imguiInitialized = true;

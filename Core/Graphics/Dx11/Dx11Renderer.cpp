@@ -535,6 +535,7 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
         }
     }
 }
+
 void Dx11Renderer::DrawMesh(
     float deltaTime,
     Mesh& mesh,

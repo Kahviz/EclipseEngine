@@ -153,6 +153,9 @@ void Graphics::DrawAFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>
     if (UsesDx11) {
         DR.get()->DrawAFrame(DELTATIME,Drawables);
     }
+    if (UsesVulkan) {
+        VR.get()->DrawFrame();
+    }
 }
 
 void Graphics::ClearBuffer(float r, float g, float b)
