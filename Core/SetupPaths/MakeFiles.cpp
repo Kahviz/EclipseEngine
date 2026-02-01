@@ -208,7 +208,7 @@ void MakeFiles::MakeAPPDATAFolders() {
             std::cerr << "Error reading directory: " << e.what() << "\n";
         }
 
-        std::cout << "\nAttempting to copy files recursively...\n";
+        std::cout << "\nAttempting to copy files recursively..\n";
         bool success = CopyDirectoryRecursive(AssetTemplateFolder, appDataTarget);
 
         if (success) {
