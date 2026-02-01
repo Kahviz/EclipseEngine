@@ -15,10 +15,9 @@ struct MeshButton
 
 static MeshButton meshButtons[] =
 {
-    { "Cube",     assets + "\\Cube.fbx",     "Cube" },
-    { "Plane",    assets + "\\Plane.fbx",    "Plane" },
-    { "Ball",     assets + "\\Ball.fbx",  "Ball" },
-    { "Cylinder", assets + "\\Cylinder.fbx", "Cylinder"}
+    { "Cube",     assets + "\\Cube.obj","Cube" },
+    { "Ball",     assets + "\\Ball.obj",  "Ball" },
+    { "Cylinder", assets + "\\Cylinder.obj", "Cylinder"}
 };
 
 void MakeChildrenNodes(Instance* inst) {

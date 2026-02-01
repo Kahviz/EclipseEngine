@@ -163,13 +163,13 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 
     if (!CubeB) {
         window.GetGraphics().ReSizeWindow(screen_width, screen_height, hwnd);
-        AddAMesh("/Cube.fbx", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
+        AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
         CubeB = true;
     }
 
     bool ctrlPressed = (glfwGetKey(wnd->GetWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     if (ctrlPressed) {
-        AddAMesh("/Cube.fbx", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
+        AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
     }
 
 #if INEDITOR == 1
