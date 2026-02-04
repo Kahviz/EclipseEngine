@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 #define INEDITOR 1 //Laita 1
 
-#define DIRECTX11 0 //1 = true
+#define DIRECTX11 0 //1 = True
 #define VULKAN 1
 
 extern int screen_width;
