@@ -11,48 +11,6 @@
 #include <string>
 #include "ErrorHandling/ErrorMessage.h"
 
-std::vector<char> ReadFile(const std::string& filename) {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    if (!file.is_open()) throw std::runtime_error("Failed to open file: " + filename);
-
-    size_t fileSize = (size_t)file.tellg();
-    std::vector<char> buffer(fileSize);
-    file.seekg(0);
-    file.read(buffer.data(), fileSize);
-    file.close();
-
-    return buffer;
-}
-
-// Luo shader module Vulkanille
-VkShaderModule CreateShaderModule(VkDevice device, const std::vector<char>& code) {
-    VkShaderModuleCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size();
-    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-    VkShaderModule shaderModule;
-    if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create shader module!");
-
-    return shaderModule;
-}
-
-uint32_t VulkanRender::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) &&
-            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    throw std::runtime_error("Failed to find suitable memory type!");
-}
-
-
 bool VulkanRender::Init(GLFWwindow* window)
 {
     std::cout << "indices: " << indices.size() << "\n";
@@ -328,7 +286,9 @@ bool VulkanRender::Init(GLFWwindow* window)
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        physicalDevice
+    );
 
     vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory);
     vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
@@ -338,11 +298,11 @@ bool VulkanRender::Init(GLFWwindow* window)
     memcpy(data, vertices.data(), (size_t)bufferInfo.size);
     vkUnmapMemory(device, vertexBufferMemory);
 
-    std::cout << "ProjectDir: " << PROJECT_DIR << "Shaders/VVertex.spv" << std::endl;
+    std::cout << "ProjectDir: " << PROJECT_DIR << "Shaders/vertex.spv" << std::endl;
 
     std::string Shaders = std::string(PROJECT_DIR) + "Shaders/";
 
-    auto vertShaderCode = ReadFile(Shaders + "VVertex.spv");
+    auto vertShaderCode = ReadFile(Shaders + "vertex.spv");
     auto fragShaderCode = ReadFile(Shaders + "fragment.spv");
 
     vertShaderModule = CreateShaderModule(device, vertShaderCode);
@@ -394,9 +354,11 @@ bool VulkanRender::Init(GLFWwindow* window)
     VkMemoryAllocateInfo indexAllocInfo{};
     indexAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     indexAllocInfo.allocationSize = indexMemRequirements.size;
+
     indexAllocInfo.memoryTypeIndex = FindMemoryType(
         indexMemRequirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        physicalDevice
     );
 
     if (vkAllocateMemory(device, &indexAllocInfo, nullptr, &indexBufferMemory) != VK_SUCCESS) {
@@ -903,7 +865,8 @@ void VulkanRender::createUniformBuffers() {
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = FindMemoryType(
         memRequirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        physicalDevice
     );
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &uniformBufferMemory) != VK_SUCCESS) {

@@ -11,8 +11,7 @@
 #include "Dx11/Dx11Renderer.h"
 #include "Vulkan/VulkanRender.h"
 
-using namespace DirectX;
-using Microsoft::WRL::ComPtr;
+#include "ErrorHandling/ErrorMessage.h"
 
 class Graphics
 {
@@ -25,13 +24,11 @@ public:
     Graphics& operator=(const Graphics&) = delete;
 
     // Muut metodit
-    void InitGraphics(GLFWwindow* window);
+    bool InitGraphics(GLFWwindow* window);
     void SetRenderTargetToScene();
     void SetRenderTargetToBackBuffer();
 
     Camera& GetCamera();
-    ID3D11Device* GetDevice() noexcept;
-    ID3D11DeviceContext* GetpContext() noexcept;
 
     void EndFrame();
 
@@ -42,13 +39,49 @@ public:
     void ReSizeWindow(int width, int height, HWND hWnd);
 
     void CreateSceneResources(int width, int height);
-    ID3D11ShaderResourceView* GetSceneSRV();
-    ID3D11RenderTargetView* GetBackBufferRTV();
-    ID3D11RenderTargetView* GetMainTarget();
 
+#if DIRECTX11 == 1
     ID3D11DepthStencilView* GetDepthStencil();
 
-private:
+    ID3D11Device* GetDevice() noexcept;
+    ID3D11DeviceContext* GetpContext() noexcept;
+
+    ID3D11ShaderResourceView* GetSceneSRV();
+
+    ID3D11RenderTargetView* GetBackBufferRTV();
+
+    ID3D11RenderTargetView* GetMainTarget();
+#endif
+    
+
+    //Getters
+
+#if VULKAN == 1
+    VkPhysicalDevice GetPhysicalDevice() const {
+        return VR.get()->physicalDevice;
+    }
+
+    VkDevice GetDevice() const {
+        VkDevice device = VR.get()->device;
+
+        if (device == VK_NULL_HANDLE) {
+            MakeAError("Logical device not initialized!");
+        }
+
+        return device;
+    }
+
+    auto GetCmdPool() {
+        return this->VR.get()->commandPool;
+    }
+
+    auto GetGfxQueue() {
+        return this->VR.get()->graphicsQueue;
+    }
+#endif
+
     std::unique_ptr<VulkanRender> VR;
     std::unique_ptr<Dx11Renderer> DR;
+private:
+
 };

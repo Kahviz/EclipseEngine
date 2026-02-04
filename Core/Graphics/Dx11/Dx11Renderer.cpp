@@ -531,7 +531,7 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
             pContext->PSSetConstantBuffers(0, 1, pColorBuffer.GetAddressOf());
             pContext->PSSetConstantBuffers(1, 1, pLightingBuffer.GetAddressOf());
 
-            mesh.Draw(pContext.Get());
+            mesh.DrawForDX11(pContext.Get());
         }
     }
 }

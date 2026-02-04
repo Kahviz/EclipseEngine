@@ -15,13 +15,11 @@
 #include "backends/imgui_impl_dx11.h"
 #include <imgui_impl_vulkan.h>
 
-static bool imguiInitialized = false;
-
 
 Engine::Engine()
     : window(1280, 800, "UntilitedGameEngine")
 {
-    if (!imguiInitialized) {
+    if (!ImGuiInited) {
         IMGUI_CHECKVERSION();
         ImGuiContext* context = ImGui::CreateContext();
 
@@ -30,27 +28,33 @@ Engine::Engine()
         ImGui::StyleColorsDark();
 
         GLFWwindow* glfwWindow = window.GetWindow();
-        ID3D11Device* device = window.GetGraphics().GetDevice();
-        ID3D11DeviceContext* contextDX11 = window.GetGraphics().GetpContext();
+#if DIRECTX11 == 1
+    ID3D11Device* device = window.GetGraphics().GetDevice();
+    ID3D11DeviceContext* contextDX11 = window.GetGraphics().GetpContext();
+#endif
 
         if (!ImGui_ImplGlfw_InitForOther(glfwWindow, true)) {
             throw std::runtime_error("Failed to initialize ImGui GLFW backend");
         }
 
-        if (UsesDx11) {
+        #if DIRECTX11 == 1 
             if (!ImGui_ImplDX11_Init(device, contextDX11)) {
                 throw std::runtime_error("Failed to initialize ImGui DX11 backend");
             }
-        }
-        if (UsesVulkan) {
-            /*
-            * if (!ImGui_ImplVulkan_Init()) {
-                throw std::runtime_error("Failed to initialize ImGui Vulkan backend");
+            else {
+                ImGuiInited = true;
             }
+        #else
+            /*
+                * if (!ImGui_ImplVulkan_Init()) {
+                    throw std::runtime_error("Failed to initialize ImGui Vulkan backend");
+                }
+                else {
+                    ImGuiInited = true;
+                }
             */
-        }
+        #endif
 
-        imguiInitialized = true;
         std::cout << "ImGui initialized successfully!" << std::endl;
 
         window.SetWindowIcon(window.GetWindow());
@@ -61,11 +65,14 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-    if (imguiInitialized) {
-        ImGui_ImplDX11_Shutdown();
+    if (ImGuiInited) {
+        #if DIRECTX11 == 1
+                ImGui_ImplDX11_Shutdown();
+        #endif
+
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
-        imguiInitialized = false;
+        ImGuiInited = false;
     }
 }
 
@@ -106,9 +113,10 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
             static_cast<int>(Color3.z * 255.0f)
         )
     );
-
     obj->UniqueID = Index;
+#if DIRECTX11 == 1
     obj->OBJmesh.Load(assets + Path, window.GetGraphics().GetDevice());
+#endif
     obj->Selected = Selec;
 
     Object* objPtr = obj.get();
@@ -128,9 +136,14 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     Graphics& graphics = wnd->GetGraphics();
 
 #if INEDITOR == 1
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    if (ImGuiInited) {
+        #if DIRECTX11 == 1
+            ImGui_ImplDX11_NewFrame();
+        #endif
+        
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
 #else
     graphics.SetRenderTargetToBackBuffer();
 #endif
@@ -164,9 +177,24 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     if (!CubeB) {
         window.GetGraphics().ReSizeWindow(screen_width, screen_height, hwnd);
         AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
+
+        
         CubeB = true;
     }
 
+#if VULKAN == 1
+    static float orien = 0.0f;
+    orien += 0.00001f;
+    FLOAT3 Orientation3 = { 0,orien , 0 };
+    FLOAT3 posParam = { 0, 0, 0 };
+
+    FLOAT3 scaleParam = { 1, 2, 1 };
+
+    INT3 colorParam = { 0, 0, 0 };
+
+    wnd->GetGraphics().VR.get()->AddAMesh(deltatime, Orientation3, posParam, scaleParam, colorParam, scaleParam, false, 1.0f, 1.0f, 1);
+#endif
+    
     bool ctrlPressed = (glfwGetKey(wnd->GetWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     if (ctrlPressed) {
         AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
@@ -185,27 +213,34 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 #endif
 
 #if INEDITOR == 1
-    makeGui.MakeIMViewPort(*wnd);
+    if (ImGuiInited) {
+        makeGui.MakeIMViewPort(*wnd);
 
-    makeGui.MakeIMGui(
-        *wnd,
-        Drawables,
-        [this](const std::string& path, const std::string& name,
-            FLOAT3 pos, FLOAT3 size, bool Selec) -> Instance*
-        {
-            return &AddAMesh(path, name, pos, size, Selec);
-        },
-        reinterpret_cast<float*>(&Color3),
-        false
-    );
+        makeGui.MakeIMGui(
+            *wnd,
+            Drawables,
+            [this](const std::string& path, const std::string& name,
+                FLOAT3 pos, FLOAT3 size, bool Selec) -> Instance*
+            {
+                return &AddAMesh(path, name, pos, size, Selec);
+            },
+            reinterpret_cast<float*>(&Color3),
+            false
+        );
+    }
 #endif
 
     CameraControl camC;
     if (!ctrlPressed)
         camC.MakeCameraControls(*wnd, deltatime);
 #if INEDITOR == 1 
-    ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    if (ImGuiInited) {
+        ImGui::Render();
+
+        #if DIRECTX11 == 1
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        #endif
+    }
 #endif
 
     wnd->GetGraphics().EndFrame();

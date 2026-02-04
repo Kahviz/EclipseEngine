@@ -1,22 +1,9 @@
 #pragma once
 #include <d3d11.h>
 #include <vector>
-#include <string>
-#include <stdexcept>
+#include "Instances/Vertex.h"
 
-#include "DirectXMath.h"
-using namespace DirectX;
-
-struct Vertex
-{
-    DirectX::XMFLOAT3 pos;
-    DirectX::XMFLOAT3 normal;
-    DirectX::XMFLOAT4 color;
-    float brightness;
-};
-
-class Mesh
-{
+class MeshDX11 {
 public:
     void Load(const std::string& file, ID3D11Device* device);
     void Draw(ID3D11DeviceContext* ctx) const;

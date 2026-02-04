@@ -9,6 +9,7 @@
 #include "Math/UntilitedMath.h"
 #include "ScoreCounter.h"
 #include <GLFW/glfw3.h>
+#include "Vulkan/VulkanHelpers.h"
 
 struct VVertex {
     Vector3 pos;
@@ -55,11 +56,7 @@ const std::vector<VVertex> vertices = {
     {{-0.5f,  0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}  // harmaa
 };
 
-struct UniformBufferObject {
-    Matrix4x4 model;
-    Matrix4x4 view;
-    Matrix4x4 proj;
-};
+
 
 // Kuution indeksit (12 kolmiota = 36 indeksiä)
 const std::vector<uint16_t> indices = {
@@ -91,7 +88,6 @@ const std::vector<uint16_t> indices = {
 class VulkanRender {
 public:
     VulkanRender() = default;
-    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     bool Init(GLFWwindow* window);
     void createDescriptorSetLayout();
     void Cleanup();
@@ -109,6 +105,11 @@ public:
     void createDescriptorSets();
     void updateUniformBuffer(uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos);
     bool AddAMesh(float deltaTime, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
+
+    VkCommandPool commandPool;
+    VkQueue graphicsQueue;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device = VK_NULL_HANDLE;
 private:
     uint32_t imageIndex;
     int windowWidth = 800;
@@ -138,11 +139,7 @@ private:
     VkSemaphore imageAvailableSemaphore;
     VkSemaphore renderFinishedSemaphore;
     VkFence inFlightFence;
-    VkCommandPool commandPool;
-    VkQueue graphicsQueue;
     VkInstance instance = VK_NULL_HANDLE;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device = VK_NULL_HANDLE;
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
     VkRenderPass renderPass = VK_NULL_HANDLE;

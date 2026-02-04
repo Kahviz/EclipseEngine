@@ -70,7 +70,6 @@ public:
     bool HaveOBJMesh() const override { return true; }
 
     bool RayIntersects(const Vector3& rayOrigin, const Vector3& rayDir) override {
-
         auto& Vertices = OBJmesh.GetVertices();
         auto& Indices = OBJmesh.GetIndices();
 
@@ -88,6 +87,7 @@ public:
                 return true;
         }
 
+        
         return false;
     }
 

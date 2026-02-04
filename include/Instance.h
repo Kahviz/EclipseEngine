@@ -3,8 +3,9 @@
 #include <DirectXMath.h>
 #include <string>
 #include <memory>
-#include "Mesh.h"
 #include "Math/UntilitedMath.h"
+#include <Mesh.h>
+
 using namespace DirectX;
 
 class Instance {

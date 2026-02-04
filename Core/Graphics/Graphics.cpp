@@ -15,165 +15,131 @@
 #pragma comment(lib,"d3dcompiler.lib")
 
 
-void Graphics::InitGraphics(GLFWwindow* window)
+bool Graphics::InitGraphics(GLFWwindow* window)
 {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
+        MakeASuccess("Inited DX11 Graphics!");
+
         HWND hwnd = glfwGetWin32Window(window);
+
         DR = std::make_unique<Dx11Renderer>();
         DR.get()->InitDx11Renderer(hwnd);
-    }
 
-    if (UsesVulkan) {
-
-    }
+        return true;
+    #else
+        MakeASuccess("Inited Vulkan Graphics!");
+        VR = std::make_unique<VulkanRender>();
+        return VR.get()->Init(window);
+    #endif
 }
 
 void Graphics::SetRenderTargetToScene() {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
 
-    }
-    if (UsesVulkan) {
+    #else
 
-    }
+    #endif
 }
 
 void Graphics::SetRenderTargetToBackBuffer() {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
 
-    }
-    if (UsesVulkan) {
+    #else
 
-    }
+    #endif
 }
 
 void Graphics::ReSizeWindow(int width, int height, HWND hWnd)
 {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
         DR.get()->ReSizeWindow(width, height, hWnd);
-    }
-    if (UsesVulkan) {
+    #else
 
-    }
+    #endif
 }
 
 void Graphics::CreateSceneResources(int width, int height) {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
         DR.get()->CreateSceneResources(width, height);
-    }
-    if (UsesVulkan) {
+    #else
 
-    }
+    #endif
 }
 
-ID3D11ShaderResourceView* Graphics::GetSceneSRV() {
-    if (UsesDx11) {
+#if DIRECTX11 == 1
+    ID3D11DepthStencilView* Graphics::GetDepthStencil()
+    {
+        return DR.get()->GetDepthStencil();
+    }
+
+    ID3D11Device* Graphics::GetDevice() noexcept
+    {
+        ID3D11Device* ddevice = DR.get()->GetDevice();
+        return ddevice;
+    }
+
+    ID3D11DeviceContext* Graphics::GetpContext() noexcept
+    {
+        ID3D11DeviceContext* Context = DR.get()->GetpContext();
+        return Context;
+    }
+
+    ID3D11ShaderResourceView* Graphics::GetSceneSRV() {
         return DR.get()->GetSceneSRV();
     }
-    if (UsesVulkan) {
 
-    }
-}
-
-ID3D11RenderTargetView* Graphics::GetBackBufferRTV()
-{
-    if (UsesDx11) {
+    ID3D11RenderTargetView* Graphics::GetBackBufferRTV()
+    {
         return DR.get()->GetBackBufferRTV();
     }
-    if (UsesVulkan) {
 
-    }
-}
-
-ID3D11RenderTargetView* Graphics::GetMainTarget()
-{
-    if (UsesDx11) {
+    ID3D11RenderTargetView* Graphics::GetMainTarget()
+    {
         ID3D11RenderTargetView* mT = DR.get()->GetMainTarget();
         return mT;
     }
-    if (UsesVulkan) {
-
-    }
-}
-
-ID3D11DepthStencilView* Graphics::GetDepthStencil()
-{
-    if (UsesDx11) {
-        return DR.get()->GetDepthStencil();
-    }
-    if (UsesVulkan) {
-
-    }
-}
-
+#endif
 
 
 Camera& Graphics::GetCamera()
 {
-    if (UsesDx11) {
-        return DR.get()->GetCamera();
-    }
-    if (UsesVulkan) {
-
-    }
-}
-
-ID3D11Device* Graphics::GetDevice() noexcept
-{
-    if (UsesDx11) {
-        ID3D11Device* device = DR.get()->GetDevice();
-        return device;
-    }
-    if (UsesVulkan) {
-
-    }
-}
-
-ID3D11DeviceContext* Graphics::GetpContext() noexcept
-{
-    if (UsesDx11) {
-        ID3D11DeviceContext* Context = DR.get()->GetpContext();
-        return Context;
-    }
-    if (UsesVulkan) {
-
-    }
+    #if DIRECTX11 == 1
+            return DR.get()->GetCamera();
+    #else
+            static Camera defaultCamera;  // Staattinen oletuskamera
+            return defaultCamera;
+    #endif
 }
 
 void Graphics::EndFrame()
 {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
         DR.get()->EndFrame();
-    }
-    if (UsesVulkan) {
-
-    }
+    #endif
 }
 
 void Graphics::DrawAFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables) {
-    if (UsesDx11) {
-        DR.get()->DrawAFrame(DELTATIME,Drawables);
-    }
-    if (UsesVulkan) {
+    #if DIRECTX11 == 1
+        DR.get()->DrawAFrame(DELTATIME, Drawables);
+    #else
         VR.get()->DrawFrame();
-    }
+    #endif
 }
 
 void Graphics::ClearBuffer(float r, float g, float b)
 {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
         DR.get()->ClearBuffer(r, g, b);
-    }
-    if (UsesVulkan) {
+    #else
 
-    }
+    #endif
 }
 
 void Graphics::ClearSceneBuffer(float r, float g, float b)
 {
-    if (UsesDx11) {
+    #if DIRECTX11 == 1
         DR.get()->ClearSceneBuffer(r, g, b);
-    }
-    if (UsesVulkan) {
+    #else
 
-    }
+    #endif
 }

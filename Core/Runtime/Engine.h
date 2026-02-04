@@ -20,6 +20,7 @@ public:
 
 private:
     void EngineDoFrame(Window* wnd, float deltatime);
+    bool ImGuiInited = false;
 
     MakeGui makeGui;
     Window window;

@@ -21,15 +21,21 @@ Window::Window(int Width, int Height, std::string Name)
         Inited = true;
     }
 
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
     m_window = glfwCreateWindow(Width, Height, Name.c_str(), nullptr, nullptr);
     if (!m_window) {
         glfwTerminate();
         throw std::runtime_error("Failed to create GLFW window");
     }
 
-    HWND hwnd = glfwGetWin32Window(m_window);
     pGfx = std::make_unique<Graphics>();
-    pGfx.get()->InitGraphics(m_window);
+
+    if (!pGfx.get()->InitGraphics(m_window)) {
+        MakeAError("Graphics Initing Error!");
+
+        throw std::runtime_error("Failed to initialize graphics!");
+    }
 }
 
 

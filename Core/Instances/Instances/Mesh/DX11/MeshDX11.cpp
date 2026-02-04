@@ -1,10 +1,9 @@
-#include "Mesh.h"
+#include "MeshDX11.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <stdexcept>
 
-void Mesh::Load(const std::string& file, ID3D11Device* device)
+void MeshDX11::Load(const std::string& file, ID3D11Device* device)
 {
     Assimp::Importer imp;
     const aiScene* scene = imp.ReadFile(
@@ -89,7 +88,7 @@ void Mesh::Load(const std::string& file, ID3D11Device* device)
         throw std::runtime_error("Failed to create index buffer");
 }
 
-void Mesh::Draw(ID3D11DeviceContext* ctx) const
+void MeshDX11::Draw(ID3D11DeviceContext* ctx) const
 {
     UINT stride = sizeof(Vertex);
     UINT offset = 0;

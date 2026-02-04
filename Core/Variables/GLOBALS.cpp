@@ -15,9 +15,6 @@ bool InEditor = true;
 bool vSync = true;
 bool Running = true;
 
-bool UsesDx11 = true;
-bool UsesVulkan = false;
-
 float FOV = 100.0f;
 
 int Index = 0;

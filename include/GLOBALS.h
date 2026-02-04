@@ -6,7 +6,9 @@
 namespace fs = std::filesystem;
 
 #define INEDITOR 1 //Laita 1
+
 #define DIRECTX11 0 //1 = true
+#define VULKAN 1
 
 extern int screen_width;
 extern int screen_height;
@@ -25,6 +27,4 @@ extern bool InEditor;
 extern int Index;
 extern bool vSync;
 extern bool Running;
-extern bool UsesDx11;
-extern bool UsesVulkan;
 extern float FOV;

@@ -57,7 +57,7 @@ add_executable(
     Core/Camera/Camera.cpp
     Core/ErrorHandling/Expectation/Expection.cpp
     Core/Graphics/Graphics.cpp
-    Core/Instances/Instances/Mesh/Mesh.cpp
+    Core/Instances/Instances/Mesh/DX11/MeshDX11.cpp
     Core/Gui/ImGuiManager.cpp
     Core/Gui/MakeGui.cpp
     Core/Misc/Colission/Colission.cpp
@@ -73,7 +73,8 @@ add_executable(
     Core/Graphics/Vulkan/VulkanRender.cpp
     Core/Graphics/Vulkan/ScoreCounter.cpp
     ${IMGUI_SOURCES}
-)
+    Core/Instances/Instances/Mesh/DX11/MeshDX11.cpp
+ "Core/Instances/Vertex.h" "Core/Vulkan/VulkanHelpers.h")
 
 # ---- Include directories ----
 target_include_directories(UntilitedGameEngine PRIVATE
@@ -86,6 +87,7 @@ target_include_directories(UntilitedGameEngine PRIVATE
     out/build/x64-release/_deps/glfw-src/include/
     Core/Runtime/
     Core/Graphics/
+    Core/Instances/Instances/Mesh
     ${Vulkan_INCLUDE_DIRS}
     ${Vulkan_INCLUDE_DIRS}
 )
