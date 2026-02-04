@@ -14,6 +14,6 @@
 1. Down load the zip file or clone the repo
 2. Go File Onto Top Right and press Open And Then CMake Project
 3. Press The Run Button and wait about half minute So It can clone all the resources from The Repo to AppData Folder
-4. 
+   
 +You need Vulkan SDK
 
