@@ -5,9 +5,10 @@
 #include <vector>
 #include <DirectXMath.h>
 #include <string>
-#include "Mesh.h"
 #include "Instance.h"
 #include "Math/UntilitedMath.h"
+#include <Instances/Vertex.h>
+#include <Instances/Instances/Mesh/Mesh.h>
 
 using namespace DirectX;
 

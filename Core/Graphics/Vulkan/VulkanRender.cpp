@@ -1,5 +1,4 @@
 #include "VulkanRender.h"
-#include "VulkanRender.h"
 #include <cstdint>
 #include <vulkan/vulkan.h>
 #include <iostream>
@@ -10,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include "ErrorHandling/ErrorMessage.h"
+#include "Mesh/Vulkan/MeshVulkan.h"
 
 bool VulkanRender::Init(GLFWwindow* window)
 {
@@ -297,8 +297,6 @@ bool VulkanRender::Init(GLFWwindow* window)
     vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
     memcpy(data, vertices.data(), (size_t)bufferInfo.size);
     vkUnmapMemory(device, vertexBufferMemory);
-
-    std::cout << "ProjectDir: " << PROJECT_DIR << "Shaders/vertex.spv" << std::endl;
 
     std::string Shaders = std::string(PROJECT_DIR) + "Shaders/";
 
@@ -796,14 +794,14 @@ void VulkanRender::CreateSwapchain() {
         }
     }
 
-    // Käytä nykyistä extenttiä tai laske uusi
     VkExtent2D extent = surfaceCapabilities.currentExtent;
     if (extent.width == UINT32_MAX || extent.width == 0) {
-        // Laske uusi extent ikkunan koon perusteella
-        extent.width = std::max(surfaceCapabilities.minImageExtent.width,
+        /*
+        * extent.width = std::max(surfaceCapabilities.minImageExtent.width,
             std::min(surfaceCapabilities.maxImageExtent.width, static_cast<uint32_t>(windowWidth)));
         extent.height = std::max(surfaceCapabilities.minImageExtent.height,
             std::min(surfaceCapabilities.maxImageExtent.height, static_cast<uint32_t>(windowHeight)));
+        */
     }
 
     uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
@@ -989,8 +987,9 @@ void VulkanRender::updateUniformBuffer(
     memcpy(dst, &ubo, sizeof(ubo));
 }
 
-bool VulkanRender::AddAMesh(
-    float deltaTime,
+bool VulkanRender::RenderAMesh(
+    std::vector<std::unique_ptr<Instance>>& Drawables,
+    std::unique_ptr<Instance> inst,
     FLOAT3 Orientation,
     FLOAT3& pos,
     FLOAT3& size,
@@ -1026,7 +1025,7 @@ void VulkanRender::DrawFrame()
         return;
     }
 
-    RecordCommandBuffer(imageIndex);
+    RecordCommandBuffer(imageIndex); //Drawaa
 
     VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 

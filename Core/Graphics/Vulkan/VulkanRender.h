@@ -10,6 +10,7 @@
 #include "ScoreCounter.h"
 #include <GLFW/glfw3.h>
 #include "Vulkan/VulkanHelpers.h"
+#include <Instance.h>
 
 struct VVertex {
     Vector3 pos;
@@ -104,7 +105,7 @@ public:
     void createDescriptorPool();
     void createDescriptorSets();
     void updateUniformBuffer(uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos);
-    bool AddAMesh(float deltaTime, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
+    bool RenderAMesh(std::vector<std::unique_ptr<Instance>>& Drawables, std::unique_ptr<Instance> inst, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
 
     VkCommandPool commandPool;
     VkQueue graphicsQueue;
@@ -117,6 +118,7 @@ private:
     int graphicsFamilyIndex = -1;
     size_t dynamicAlignment;
 
+    std::vector<std::unique_ptr<Instance>> DrawablesCopy;
     std::vector<uint32_t> drawObjectIndices;
     std::vector<VkImage> swapchainImages;
     std::vector<VkFramebuffer> swapchainFramebuffers;

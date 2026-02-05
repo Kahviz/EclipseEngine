@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 #include "Math/UntilitedMath.h"
-#include <Mesh.h>
+#include "Instances/Instances/Mesh/Mesh.h"
 
 using namespace DirectX;
 

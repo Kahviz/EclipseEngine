@@ -182,19 +182,61 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
         CubeB = true;
     }
 
+    static bool firstTime = true;
+
+    
 #if VULKAN == 1
     static float orien = 0.0f;
     orien += 0.00001f;
     FLOAT3 Orientation3 = { 0,orien , 0 };
     FLOAT3 posParam = { 0, 0, 0 };
+    FLOAT3 vel = { 0, 0, 0 };
 
-    FLOAT3 scaleParam = { 1, 2, 1 };
+    FLOAT3 scaleParam = { 2, 2, 1 };
 
     INT3 colorParam = { 0, 0, 0 };
-
-    wnd->GetGraphics().VR.get()->AddAMesh(deltatime, Orientation3, posParam, scaleParam, colorParam, scaleParam, false, 1.0f, 1.0f, 1);
-#endif
     
+    if (firstTime) {
+        firstTime = false;
+        
+        Instance inst;
+        inst.Anchored = false;
+        inst.Size = scaleParam;
+        inst.Orientation = Orientation3;
+        inst.color = colorParam;
+        inst.Velocity = vel;
+
+        auto instU = std::make_unique<Instance>(inst);
+
+        Drawables.push_back(std::move(instU));
+    }
+
+    size_t index = 1;
+    for (auto& Drawable : Drawables) {
+        if (Drawable.get()->CanDraw()) {
+            Instance* inst = Drawable.get();
+            auto instCt = std::make_unique<Instance>(/* ctor args */);
+
+            wnd->GetGraphics().VR.get()->RenderAMesh(
+                Drawables,
+                std::move(instCt),
+                inst->Orientation,
+                inst->pos,
+                inst->Size,
+                inst->color,
+                inst->Velocity,
+                inst->Anchored,
+                1.0f,
+                1.0f,
+                index
+            );
+
+            ++index;
+        }
+    }
+
+#endif
+    std::cout << "FPS: " << 1 / deltatime << std::endl;
     bool ctrlPressed = (glfwGetKey(wnd->GetWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     if (ctrlPressed) {
         AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);

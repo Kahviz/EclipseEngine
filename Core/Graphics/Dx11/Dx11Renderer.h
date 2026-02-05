@@ -1,11 +1,11 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "Mesh.h"
 #include <string>
 #include "Camera.h"
 #include <wrl/client.h>
 #include <Instance.h>
+#include <Instances/Instances/Mesh/Mesh.h>
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;

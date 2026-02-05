@@ -2,7 +2,6 @@
 #include <memory>
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include "Mesh.h"
 #include <string>
 #include "Camera.h"
 #include <wrl/client.h>

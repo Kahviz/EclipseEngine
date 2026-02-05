@@ -13,7 +13,7 @@ endif()
 
 message(STATUS "Using Vulkan SDK at: ${Vulkan_INCLUDE_DIRS}")
 
-# ---------------- GLFW ----------------
+#GLFW
 include(FetchContent)
 FetchContent_Declare(
     glfw
@@ -26,7 +26,7 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
-# ---------------- ImGui ----------------
+#ImGui
 set(IMGUI_SOURCES
     Core/Libs/ImGui/imgui.cpp
     Core/Libs/ImGui/imgui_draw.cpp
@@ -36,7 +36,10 @@ set(IMGUI_SOURCES
     Core/Libs/ImGui/backends/imgui_impl_dx11.cpp
 )
 
-# ---------------- Executable ----------------
+#Definitions
+add_definitions(-DPROJECT_DIR="${CMAKE_SOURCE_DIR}/")
+
+#Executable
 add_executable(UntitledGameEngine
     main.cpp
     Core/SetupPaths/MakeFiles.cpp
@@ -68,6 +71,8 @@ target_include_directories(UntitledGameEngine PRIVATE
     Core/Libs/SDL3
     Core/Libs/ImGui
     Core/Libs/ImGui/backends
+    Core/Instances/Instances/
+
     ${Vulkan_INCLUDE_DIRS}
 )
 
