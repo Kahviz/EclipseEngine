@@ -1,4 +1,6 @@
 #pragma once
+#pragma once
+
 #include <memory>
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -7,10 +9,16 @@
 #include <wrl/client.h>
 #include "GLFW/glfw3.h"
 
+// LISÄÄ FORWARD DECLARATION:
+class Window;  // <-- TÄRKEÄÄ!
+
 #include "Dx11/Dx11Renderer.h"
 #include "Vulkan/VulkanRender.h"
-
 #include "ErrorHandling/ErrorMessage.h"
+
+// LISÄÄ PUUTTUVAT INCLUDET:
+#include <vector>
+#include "Instance.h"
 
 class Graphics
 {
@@ -35,7 +43,8 @@ public:
 
     void ClearBuffer(float r, float g, float b);
     void ClearSceneBuffer(float r, float g, float b);
-    void ReSizeWindow(int width, int height, HWND hWnd);
+
+    void ReSizeWindow(int width, int height, Window* wnd);
 
     void CreateSceneResources(int width, int height);
 

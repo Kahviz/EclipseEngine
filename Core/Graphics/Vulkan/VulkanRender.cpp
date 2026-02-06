@@ -840,8 +840,6 @@ void VulkanRender::CreateSwapchain() {
 }
 
 void VulkanRender::createUniformBuffers() {
-    const uint32_t MAX_OBJECTS = 100;
-
     VkDeviceSize bufferSize =
         dynamicAlignment * MAX_OBJECTS;
 
@@ -988,8 +986,7 @@ void VulkanRender::updateUniformBuffer(
 }
 
 bool VulkanRender::RenderAMesh(
-    std::vector<std::unique_ptr<Instance>>& Drawables,
-    std::unique_ptr<Instance> inst,
+    const Instance* drawable,
     FLOAT3 Orientation,
     FLOAT3& pos,
     FLOAT3& size,
@@ -1007,7 +1004,7 @@ bool VulkanRender::RenderAMesh(
 }
 
 
-void VulkanRender::DrawFrame()
+void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables)
 {
     vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &inFlightFence);
@@ -1025,7 +1022,7 @@ void VulkanRender::DrawFrame()
         return;
     }
 
-    RecordCommandBuffer(imageIndex); //Drawaa
+    RecordCommandBuffer(imageIndex);
 
     VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 

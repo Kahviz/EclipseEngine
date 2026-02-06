@@ -113,47 +113,26 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
             static_cast<int>(Color3.z * 255.0f)
         )
     );
+
     obj->UniqueID = Index;
+
 #if DIRECTX11 == 1
     obj->OBJmesh.Load(assets + Path, window.GetGraphics().GetDevice());
 #endif
+
     obj->Selected = Selec;
 
-    Object* objPtr = obj.get();
+    Instance* objPtr = obj.get();
     Drawables.push_back(std::move(obj));
 
     Index++;
     return *objPtr;
 }
 
-void Engine::EngineDoFrame(Window* wnd, float deltatime)
-{
-    if (ImGui::GetCurrentContext() == nullptr) {
-        std::cerr << "ERROR: No ImGui context set!" << std::endl;
-        return;
-    }
-
-    Graphics& graphics = wnd->GetGraphics();
-
-#if INEDITOR == 1
-    if (ImGuiInited) {
-        #if DIRECTX11 == 1
-            ImGui_ImplDX11_NewFrame();
-        #endif
-        
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-    }
-#else
-    graphics.SetRenderTargetToBackBuffer();
-#endif
-    graphics.ClearBuffer(0.0f, 0.0f, 1.0f);
-
-    static bool CubeB = false;
+void ScreenResizerDetector(Window* wnd) {
     int width, height;
     glfwGetFramebufferSize(wnd->GetWindow(), &width, &height);
 
-    HWND hwnd = glfwGetWin32Window(wnd->GetWindow());
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
     io.LogFilename = nullptr;
@@ -168,75 +147,47 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     );
 
     if (screen_width != width || screen_height != height) {
-        wnd->GetGraphics().ReSizeWindow(width, height, hwnd);
+        wnd->GetGraphics().ReSizeWindow(width, height, wnd);
         screen_width = width;
         screen_height = height;
         std::cout << "Screen resized to: " << screen_width << "x" << screen_height << std::endl;
     }
+}
+
+void Engine::EngineDoFrame(Window* wnd, float deltatime)
+{
+    if (ImGui::GetCurrentContext() == nullptr) {
+        std::cerr << "ERROR: No ImGui context set!" << std::endl;
+        return;
+    }
+
+    Graphics& graphics = wnd->GetGraphics();
+
+    ScreenResizerDetector(wnd);
+
+#if INEDITOR == 1
+    if (ImGuiInited) {
+        #if DIRECTX11 == 1
+            ImGui_ImplDX11_NewFrame();
+        #endif
+
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+#else
+    graphics.SetRenderTargetToBackBuffer();
+#endif
+    graphics.ClearBuffer(0.0f, 0.0f, 1.0f);
+
+    static bool CubeB = false;
 
     if (!CubeB) {
-        window.GetGraphics().ReSizeWindow(screen_width, screen_height, hwnd);
+        window.GetGraphics().ReSizeWindow(screen_width, screen_height, wnd);
         AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
 
-        
         CubeB = true;
     }
 
-    static bool firstTime = true;
-
-    
-#if VULKAN == 1
-    static float orien = 0.0f;
-    orien += 0.00001f;
-    FLOAT3 Orientation3 = { 0,orien , 0 };
-    FLOAT3 posParam = { 0, 0, 0 };
-    FLOAT3 vel = { 0, 0, 0 };
-
-    FLOAT3 scaleParam = { 2, 2, 1 };
-
-    INT3 colorParam = { 0, 0, 0 };
-    
-    if (firstTime) {
-        firstTime = false;
-        
-        Instance inst;
-        inst.Anchored = false;
-        inst.Size = scaleParam;
-        inst.Orientation = Orientation3;
-        inst.color = colorParam;
-        inst.Velocity = vel;
-
-        auto instU = std::make_unique<Instance>(inst);
-
-        Drawables.push_back(std::move(instU));
-    }
-
-    size_t index = 1;
-    for (auto& Drawable : Drawables) {
-        if (Drawable.get()->CanDraw()) {
-            Instance* inst = Drawable.get();
-            auto instCt = std::make_unique<Instance>(/* ctor args */);
-
-            wnd->GetGraphics().VR.get()->RenderAMesh(
-                Drawables,
-                std::move(instCt),
-                inst->Orientation,
-                inst->pos,
-                inst->Size,
-                inst->color,
-                inst->Velocity,
-                inst->Anchored,
-                1.0f,
-                1.0f,
-                index
-            );
-
-            ++index;
-        }
-    }
-
-#endif
-    std::cout << "FPS: " << 1 / deltatime << std::endl;
     bool ctrlPressed = (glfwGetKey(wnd->GetWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     if (ctrlPressed) {
         AddAMesh("\\Cube.obj", "TestCube", { 1,1,1 }, { 1,1,1 }, false);
@@ -247,7 +198,7 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 
     graphics.ClearSceneBuffer(0.1f, 0.2f, 0.3f);
 #endif
-    
+
     graphics.DrawAFrame(deltatime, Drawables);
 
 #if INEDITOR == 1
@@ -272,16 +223,26 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     }
 #endif
 
+    //Draw
+    for (auto& Drawableptr : Drawables) {
+        auto Drawable = Drawableptr.get();
+        if (Drawable->CanDraw()) {
+            #if VULKAN == 1
+                wnd->GetGraphics().VR.get()->RenderAMesh(Drawable, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f, 1);
+            #elif DIRECTX11
+                wnd->GetGraphics().DR.get()->DrawMesh(deltatime, Drawable->OBJmesh, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f)
+            #endif
+        }
+    }
     CameraControl camC;
     if (!ctrlPressed)
         camC.MakeCameraControls(*wnd, deltatime);
 #if INEDITOR == 1 
     if (ImGuiInited) {
         ImGui::Render();
-
-        #if DIRECTX11 == 1
-            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        #endif
+#if DIRECTX11 == 1
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+#endif
     }
 #endif
 

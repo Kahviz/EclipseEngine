@@ -100,18 +100,22 @@ public:
     void CreateImageViews();
     void CleanupSwapchain();
     void CreateSwapchain();
-    void DrawFrame();
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();
     void updateUniformBuffer(uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos);
-    bool RenderAMesh(std::vector<std::unique_ptr<Instance>>& Drawables, std::unique_ptr<Instance> inst, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
+    bool RenderAMesh(const Instance* drawable, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
+
+    void DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables);
 
     VkCommandPool commandPool;
     VkQueue graphicsQueue;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device = VK_NULL_HANDLE;
 private:
+    const uint32_t MAX_OBJECTS = 100;
+    size_t maxInstances = 100;
+
     uint32_t imageIndex;
     int windowWidth = 800;
     int windowHeight = 800;

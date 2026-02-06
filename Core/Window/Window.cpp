@@ -1,7 +1,6 @@
 #include "Window.h"
 #include "memory.h"
 
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
 #include "imgui.h"
@@ -9,6 +8,7 @@
 #include <backends/imgui_impl_dx11.h>
 
 #include "GLOBALS.h"
+#include "Graphics/Graphics.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <Libs/STBIcons/stb_image.h>

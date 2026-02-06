@@ -2,7 +2,10 @@
 
 #include <GLFW/glfw3.h>
 #include <memory>
-#include <Graphics/Graphics.h>
+#include <string>
+#include "ErrorHandling/ErrorMessage.h"
+
+class Graphics;
 
 class Window
 {
@@ -12,7 +15,6 @@ public:
     ~Window();
     GLFWwindow* GetWindow() const noexcept;
     Graphics& GetGraphics();
-
 private:
     bool Inited = false;
     GLFWwindow* m_window = nullptr;

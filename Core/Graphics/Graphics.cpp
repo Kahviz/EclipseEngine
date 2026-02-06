@@ -49,9 +49,12 @@ void Graphics::SetRenderTargetToBackBuffer() {
     #endif
 }
 
-void Graphics::ReSizeWindow(int width, int height, HWND hWnd)
+
+void Graphics::ReSizeWindow(int width, int height, Window* wnd)
 {
     #if DIRECTX11 == 1
+        HWND hwnd = glfwGetWin32Window(wnd->GetWindow());
+
         DR.get()->ReSizeWindow(width, height, hWnd);
     #else
 
@@ -122,7 +125,7 @@ void Graphics::DrawAFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>
     #if DIRECTX11 == 1
         DR.get()->DrawAFrame(DELTATIME, Drawables);
     #else
-        VR.get()->DrawFrame();
+        VR.get()->DrawFrame(DELTATIME,Drawables);
     #endif
 }
 

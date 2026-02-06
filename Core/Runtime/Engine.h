@@ -15,8 +15,7 @@ public:
     ~Engine();
 
     int EngineRun();
-    Instance& AddAMesh(const std::string& Path, const std::string& Name,
-        FLOAT3 pos, FLOAT3 Size, bool Selec);
+    Instance& AddAMesh(const std::string& Path, const std::string& Name, FLOAT3 pos, FLOAT3 Size, bool Selec);
 
 private:
     void EngineDoFrame(Window* wnd, float deltatime);
