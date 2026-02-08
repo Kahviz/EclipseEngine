@@ -280,7 +280,7 @@ bool VulkanRender::Init(GLFWwindow* window)
 
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
-    std::cout << "VVertex buffer mem size: " << memRequirements.size << "\n";
+    std::cout << "Vertex buffer mem size: " << memRequirements.size << "\n";
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -944,7 +944,8 @@ void VulkanRender::updateUniformBuffer(
     uint32_t objectIndex,
     FLOAT3 scale,
     FLOAT3 Orientation,
-    FLOAT3 pos
+    FLOAT3 pos,
+    INT3 color
 )
 {
     static auto startTime = std::chrono::high_resolution_clock::now();
@@ -965,6 +966,12 @@ void VulkanRender::updateUniformBuffer(
 
     ubo.model.w = { pos.x, pos.y, pos.z, 1.0f };
 
+    ubo.color = Vector3(
+        color.x / 255.0f,
+        color.y / 255.0f,
+        color.z / 255.0f
+    );
+
     Matrix4x4 view = MatrixLookAtLH(
         Vector3(2.0f, 2.0f, 2.0f),
         Vector3(0.0f, 0.0f, 0.0f),
@@ -973,7 +980,7 @@ void VulkanRender::updateUniformBuffer(
 
     ubo.view = view;
 
-    float fovY = 45.0f * 3.1415926535f / 180.0f;
+    float fovY = 45.0f * PI / 180.0f;
     float aspect = (float)swapchainExtent.width / (float)swapchainExtent.height;
 
     ubo.proj = CreateVulkanPerspective(fovY, aspect, 0.1f, 10.0f);
@@ -998,7 +1005,7 @@ bool VulkanRender::RenderAMesh(
     int Index
 )
 {
-    updateUniformBuffer(Index, size, Orientation, pos);
+    updateUniformBuffer(Index, size, Orientation, pos,color);
     drawObjectIndices.push_back(Index);
     return true;
 }

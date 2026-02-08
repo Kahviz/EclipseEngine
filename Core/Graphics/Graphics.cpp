@@ -7,8 +7,12 @@
 #include <stdexcept>
 #include "GLOBALS.h"
 #include <wrl/client.h>
+#include "Window/Window.h"
 
-#define GLFW_EXPOSE_NATIVE_WIN32
+#if DIRECTX11 == 1 
+    #define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+
 #include <GLFW/glfw3native.h>
 
 #pragma comment(lib,"d3d11.lib")
@@ -55,7 +59,7 @@ void Graphics::ReSizeWindow(int width, int height, Window* wnd)
     #if DIRECTX11 == 1
         HWND hwnd = glfwGetWin32Window(wnd->GetWindow());
 
-        DR.get()->ReSizeWindow(width, height, hWnd);
+        DR.get()->ReSizeWindow(width, height, hwnd);
     #else
 
     #endif

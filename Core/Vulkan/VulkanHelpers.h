@@ -6,6 +6,8 @@ struct UniformBufferObject {
     Matrix4x4 model;
     Matrix4x4 view;
     Matrix4x4 proj;
+    Vector3 color;
+    float padding;
 };
 
 inline std::vector<char> ReadFile(const std::string& filename) {

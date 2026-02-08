@@ -230,7 +230,7 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
             #if VULKAN == 1
                 wnd->GetGraphics().VR.get()->RenderAMesh(Drawable, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f, 1);
             #elif DIRECTX11
-                wnd->GetGraphics().DR.get()->DrawMesh(deltatime, Drawable->OBJmesh, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f)
+            wnd->GetGraphics().DR.get()->DrawMesh(deltatime, Drawable->OBJmesh, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f);
             #endif
         }
     }
