@@ -55,13 +55,17 @@ fs::path GetAppDataDir() {
     size_t sz = 0;
     if (_dupenv_s(&appDataPath, &sz, "APPDATA") == 0 && appDataPath != nullptr) {
         fs::path appdatatarget = fs::path(appDataPath) / "UntilitedGameEngine";
-        std::cout << "APPDATA path found: " << appdatatarget << "\n";
+
+        #ifdef _DEBUG
+                std::cout << "APPDATA path found: " << appdatatarget << "\n";
+        #endif // _DEBUG
+
         free(appDataPath);
         return appdatatarget;
     }
     else {
         MakeAError("Failed to get APPDATA path");
-        if (appDataPath) free(appDataPath);  // Varmista että muisti vapautetaan
+        if (appDataPath) free(appDataPath);
         return fs::path();
     }
 #else

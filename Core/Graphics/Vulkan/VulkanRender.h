@@ -12,6 +12,8 @@
 #include "Vulkan/VulkanHelpers.h"
 #include <Instance.h>
 #include "Instances/Vertex.h"
+#include <unordered_map>
+#include "Mesh/Vulkan/MeshVulkan.h"
 
 class VulkanRender {
 public:
@@ -41,11 +43,12 @@ public:
     VkDevice device = VK_NULL_HANDLE;
 private:
     struct DrawCommand {
-        uint32_t objectIndex;
         const MeshVK* mesh;
+        uint32_t objectIndex;
     };
 
-    std::vector<DrawCommand> drawObjects;
+    std::vector<DrawCommand> drawCommands;
+    std::unordered_map<const Mesh*, std::unique_ptr<MeshVK>> meshCache;
 
     const uint32_t MAX_OBJECTS = 100;
     size_t maxInstances = 100;

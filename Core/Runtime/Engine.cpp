@@ -55,7 +55,9 @@ Engine::Engine()
             */
         #endif
 
-        std::cout << "ImGui initialized successfully!" << std::endl;
+        #ifdef _DEBUG
+            std::cout << "ImGui initialized successfully!" << std::endl;
+        #endif
 
         window.SetWindowIcon(window.GetWindow());
         ImGuiIO& IO = ImGui::GetIO();
@@ -121,10 +123,22 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
 #endif
 
 #if VULKAN == 1
-    obj.get()->OBJmesh.VM.Load(assets + Path, window.GetGraphics().GetDevice(), window.GetGraphics().GetPhysicalDevice(), window.GetGraphics().VR.get()->commandPool, window.GetGraphics().VR.get()->graphicsQueue);
+    obj.get()->OBJmesh.VM.Load(
+        assets + Path,
+        window.GetGraphics().GetDevice(),
+        window.GetGraphics().GetPhysicalDevice(),
+        window.GetGraphics().VR.get()->commandPool,
+        window.GetGraphics().VR.get()->graphicsQueue
+    );
 #endif
-    //Settaa vert ja ind
 
+#ifdef _DEBUG
+    std::cout << "Loading mesh: " << assets + Path << std::endl;
+
+    #if VULKAN == 1
+        std::cout << "Vertices: " << obj.get()->OBJmesh.VM.GetVertices().size() << ", Indices: " << obj.get()->OBJmesh.VM.GetIndices().size() << std::endl;
+    #endif
+#endif
     obj->Selected = Selec;
 
     Instance* objPtr = obj.get();
@@ -155,7 +169,9 @@ void ScreenResizerDetector(Window* wnd) {
         wnd->GetGraphics().ReSizeWindow(width, height, wnd);
         screen_width = width;
         screen_height = height;
-        std::cout << "Screen resized to: " << screen_width << "x" << screen_height << std::endl;
+        #ifdef _DEBUG
+            std::cout << "Screen resized to: " << screen_width << "x" << screen_height << std::endl;
+        #endif
     }
 }
 
@@ -172,9 +188,9 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 
 #if INEDITOR == 1
     if (ImGuiInited) {
-        #if DIRECTX11 == 1
-            ImGui_ImplDX11_NewFrame();
-        #endif
+#if DIRECTX11 == 1
+        ImGui_ImplDX11_NewFrame();
+#endif
 
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -188,14 +204,14 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 
     if (!CubeB) {
         window.GetGraphics().ReSizeWindow(screen_width, screen_height, wnd);
-        AddAMesh("\\Cube.obj", "TestCube", { 0,0,0 }, { 0.5,0.5,0.5 }, false);
+        AddAMesh("\\Cube.obj", "TestCube", { -1,0,0 }, { 0.5,0.5,0.5 }, false);
 
         CubeB = true;
     }
 
     bool ctrlPressed = (glfwGetKey(wnd->GetWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     if (ctrlPressed) {
-        AddAMesh("\\Cube.obj", "TestCube", { 0,0,0 }, { 0.5,0.5,0.5 }, false);
+        AddAMesh("\\Cylinder.obj", "TestCylinder", { 1,0,0 }, { 0.5,1,0.5 }, false);
     }
 
 #if INEDITOR == 1
@@ -232,11 +248,11 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     for (auto& Drawableptr : Drawables) {
         auto Drawable = Drawableptr.get();
         if (Drawable->CanDraw()) {
-            #if VULKAN == 1
-                wnd->GetGraphics().VR.get()->RenderAMesh(Drawable, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f, 1);
-            #elif DIRECTX11
+#if VULKAN == 1
+            wnd->GetGraphics().VR.get()->RenderAMesh(Drawable, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f, Drawable->UniqueID);
+#elif DIRECTX11
             wnd->GetGraphics().DR.get()->DrawMesh(deltatime, Drawable->OBJmesh, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f);
-            #endif
+#endif
         }
     }
     CameraControl camC;

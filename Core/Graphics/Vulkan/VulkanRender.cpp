@@ -13,10 +13,11 @@
 
 bool VulkanRender::Init(GLFWwindow* window)
 {
-    std::cout << "indices: " << indices.size() << "\n";
-    std::cout << "vertices: " << vertices.size() << "\n";
-
+#ifdef _DEBIG
     std::cout << "Vulkan Init Started\n";
+#endif
+
+
     uint32_t extCount = 0;
     const char** extensions = glfwGetRequiredInstanceExtensions(&extCount);
 
@@ -64,7 +65,10 @@ bool VulkanRender::Init(GLFWwindow* window)
         VkPhysicalDeviceProperties props;
         vkGetPhysicalDeviceProperties(device, &props);
 
-        std::cout << props.deviceName << " score = " << score << "\n";
+        #ifdef _DEBUG
+            std::cout << props.deviceName << " score = " << score << "\n";
+        #endif // _DEBUG
+
 
         if (score > bestScore) {
             bestScore = score;
@@ -73,18 +77,20 @@ bool VulkanRender::Init(GLFWwindow* window)
     }
 
     if (physicalDevice == VK_NULL_HANDLE) {
-        std::cout << "No suitable GPU found\n";
+        MakeAError("No suitable GPU found");
         return false;
     }
 
     VkPhysicalDeviceProperties selectedProps;
     vkGetPhysicalDeviceProperties(physicalDevice, &selectedProps);
 
+#ifdef _DEBUG
     std::cout << "Selected GPU: " << selectedProps.deviceName << "\n";
 
     MakeAError("Test Error Message");
     MakeAProblem("Test Problem");
     MakeAWarning("Test Warning");
+#endif // _DEBUG
 
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
@@ -280,7 +286,11 @@ bool VulkanRender::Init(GLFWwindow* window)
 
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
-    std::cout << "Vertex buffer mem size: " << memRequirements.size << "\n";
+
+    #ifdef _DEBUG
+        std::cout << "Vertex buffer mem size: " << memRequirements.size << "\n";
+    #endif // _DEBUG
+
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -572,6 +582,8 @@ void VulkanRender::Cleanup()
         vkDeviceWaitIdle(device);
     }
 
+    meshCache.clear();
+
     for (auto framebuffer : swapchainFramebuffers) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
@@ -588,6 +600,7 @@ void VulkanRender::Cleanup()
     if (indexBufferMemory != VK_NULL_HANDLE) {
         vkFreeMemory(device, indexBufferMemory, nullptr);
     }
+
     if (vertShaderModule != VK_NULL_HANDLE)
         vkDestroyShaderModule(device, vertShaderModule, nullptr);
 
@@ -626,15 +639,9 @@ void VulkanRender::RecordCommandBuffer(uint32_t imageIndex)
     vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-    VkBuffer vb[] = { vertexBuffer };
-    VkDeviceSize off[] = { 0 };
-    vkCmdBindVertexBuffers(cmd, 0, 1, vb, off);
-    vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-    for (uint32_t obj : drawObjectIndices)
+    for (const auto& drawCmd : drawCommands)
     {
-        uint32_t dynamicOffset = obj * dynamicAlignment;
-
+        uint32_t dynamicOffset = drawCmd.objectIndex * dynamicAlignment;
         vkCmdBindDescriptorSets(
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -643,11 +650,7 @@ void VulkanRender::RecordCommandBuffer(uint32_t imageIndex)
             1, &dynamicOffset
         );
 
-        vkCmdDrawIndexed(
-            cmd,
-            static_cast<uint32_t>(indices.size()),
-            1, 0, 0, 0
-        );
+        drawCmd.mesh->Draw(cmd);
     }
 
     vkCmdEndRenderPass(cmd);
@@ -1009,54 +1012,17 @@ bool VulkanRender::RenderAMesh(
         return false;
     }
 
-    if (!drawable->OBJmesh.GetVertices().empty() && vertexBufferMemory != VK_NULL_HANDLE) {
-        VkDeviceSize meshVertexBytes = static_cast<VkDeviceSize>(drawable->OBJmesh.GetVertices().size()) *
-                                       static_cast<VkDeviceSize>(sizeof(drawable->OBJmesh.GetVertices()[0]));
-
-        VkDeviceSize allocatedVertexBytes = 0;
-        if (!vertices.empty()) {
-            allocatedVertexBytes = static_cast<VkDeviceSize>(vertices.size()) *
-                                   static_cast<VkDeviceSize>(sizeof(vertices[0]));
-        }
-
-        VkDeviceSize copyVertexBytes = meshVertexBytes;
-        if (allocatedVertexBytes > 0 && copyVertexBytes > allocatedVertexBytes) {
-            copyVertexBytes = allocatedVertexBytes;
-        }
-
-        void* vertexDst = nullptr;
-        vkMapMemory(device, vertexBufferMemory, 0, copyVertexBytes, 0, &vertexDst);
-        memcpy(vertexDst, drawable->OBJmesh.GetVertices().data(), static_cast<size_t>(copyVertexBytes));
-        vkUnmapMemory(device, vertexBufferMemory);
-    }
-
-    if (!drawable->OBJmesh.GetIndices().empty() && indexBufferMemory != VK_NULL_HANDLE) {
-        VkDeviceSize meshIndexBytes = static_cast<VkDeviceSize>(drawable->OBJmesh.GetIndices().size()) *
-                                      static_cast<VkDeviceSize>(sizeof(drawable->OBJmesh.GetIndices()[0]));
-
-        VkDeviceSize allocatedIndexBytes = 0;
-        if (!indices.empty()) {
-            allocatedIndexBytes = static_cast<VkDeviceSize>(indices.size()) *
-                                  static_cast<VkDeviceSize>(sizeof(indices[0]));
-        }
-
-        VkDeviceSize copyIndexBytes = meshIndexBytes;
-        if (allocatedIndexBytes > 0 && copyIndexBytes > allocatedIndexBytes) {
-            copyIndexBytes = allocatedIndexBytes;
-        }
-
-        void* indexDst = nullptr;
-        vkMapMemory(device, indexBufferMemory, 0, copyIndexBytes, 0, &indexDst);
-        memcpy(indexDst, drawable->OBJmesh.GetIndices().data(), static_cast<size_t>(copyIndexBytes));
-        vkUnmapMemory(device, indexBufferMemory);
-    }
+    const MeshVK* meshVK = &drawable->OBJmesh.VM;
 
     updateUniformBuffer(Index, size, Orientation, pos, color);
-    drawObjectIndices.push_back(Index);
+
+    DrawCommand cmd;
+    cmd.mesh = meshVK;
+    cmd.objectIndex = Index;
+    drawCommands.push_back(cmd);
 
     return true;
 }
-
 
 void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables)
 {
@@ -1071,7 +1037,7 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
     );
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        drawObjectIndices.clear();
+        drawCommands.clear();
         RecreateSwapchain();
         return;
     }
@@ -1079,7 +1045,6 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
     RecordCommandBuffer(imageIndex);
 
     VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-
     VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
     VkPipelineStageFlags waitStages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
@@ -1088,7 +1053,6 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
-
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 
@@ -1107,5 +1071,5 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
 
     vkQueuePresentKHR(graphicsQueue, &presentInfo);
 
-    drawObjectIndices.clear();
+    drawCommands.clear();
 }

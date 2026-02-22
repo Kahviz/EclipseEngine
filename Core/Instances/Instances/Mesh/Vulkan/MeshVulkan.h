@@ -6,13 +6,7 @@
 class MeshVK
 {
 public:
-    void Load(
-        const std::string& file,
-        VkDevice device,
-        VkPhysicalDevice physicalDevice,
-        VkCommandPool commandPool,
-        VkQueue graphicsQueue
-    );
+    void Load(const std::string& file, VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue);
 
     void Draw(VkCommandBuffer cmd) const;
 

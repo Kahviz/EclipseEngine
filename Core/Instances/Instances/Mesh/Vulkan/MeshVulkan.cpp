@@ -5,6 +5,7 @@
 #include <assimp/postprocess.h>
 #include <stdexcept>
 #include "Vulkan/VulkanHelpers.h"
+#include <Instance.h>
 
 void MeshVK::Load(
     const std::string& file,
@@ -32,7 +33,6 @@ void MeshVK::Load(
     if (!m->HasNormals())
         throw std::runtime_error("Mesh has no normals");
 
-    // -------- Vertices --------
     verts.resize(m->mNumVertices);
     for (uint32_t i = 0; i < m->mNumVertices; ++i)
     {
@@ -52,7 +52,6 @@ void MeshVK::Load(
         verts[i].brightness = 1.0f;
     }
 
-    // -------- Indices --------
     indices.reserve(m->mNumFaces * 3);
     for (uint32_t i = 0; i < m->mNumFaces; ++i)
     {

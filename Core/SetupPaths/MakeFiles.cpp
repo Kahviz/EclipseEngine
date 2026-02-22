@@ -1,5 +1,6 @@
 #include "MakeFiles.h"
 #include "GLOBALS.h"
+#include "ErrorHandling/ErrorMessage.h"
 
 #include <filesystem>
 #include <iostream>
@@ -15,15 +16,23 @@ std::string MakeAFolder(const std::string& parentPath, const std::string& folder
     if (!fs::exists(fullPath)) {
         try {
             fs::create_directories(fullPath);
-            std::cout << "Folder created: " << fullPath << "\n";
+            #ifdef _DEBUG
+                std::cout << "Folder created: " << fullPath << "\n";
+            #endif // _DEBUG
+
         }
         catch (const fs::filesystem_error& e) {
-            std::cerr << "Error creating folder: " << e.what() << "\n";
+            #ifdef _DEBUG
+                std::cerr << "Error creating folder: " << e.what() << "\n";
+            #endif // _DEBUG
+
             return "";
         }
     }
     else {
-        std::cout << "Folder already exists: " << fullPath << "\n";
+        #ifdef _DEBUG
+            std::cout << "Folder already exists: " << fullPath << "\n";
+        #endif // _DEBUG
     }
 
     return fullPath.string();
@@ -43,15 +52,22 @@ std::string MakeAFile(const std::string& parentPath, const std::string& fileName
         if (file.is_open()) {
             file << content;
             file.close();
-            std::cout << "File created: " << fullPath << "\n";
+
+            #ifdef _DEBUG
+                std::cout << "File created: " << fullPath << "\n";
+            #endif
         }
         else {
-            std::cerr << "Failed to open file for writing: " << fullPath << "\n";
+            #ifdef _DEBUG
+                std::cerr << "Failed to open file for writing: " << fullPath << "\n";
+            #endif
             return "";
         }
     }
     catch (const fs::filesystem_error& e) {
-        std::cerr << "Filesystem error: " << e.what() << "\n";
+        #ifdef _DEBUG
+            std::cerr << "Filesystem error: " << e.what() << "\n";
+        #endif
         return "";
     }
 
@@ -64,7 +80,6 @@ bool siirraKaikki(const fs::path& lahdeHakemisto,
         if (!fs::exists(lahdeHakemisto)) return false;
         if (!fs::is_directory(lahdeHakemisto)) return false;
 
-        // Luo kohdehakemisto
         fs::create_directories(kohdeParent);
 
         for (const auto& entry : fs::directory_iterator(lahdeHakemisto)) {
@@ -91,17 +106,21 @@ bool CopyDirectoryRecursive(const fs::path& sourceDir, const fs::path& targetDir
         
 
         if (!fs::exists(sourceDir)) {
-            std::cerr << "Source directory doesn't exist: " << sourceDir << "\n";
+            #ifdef _DEBUG
+                        std::cerr << "Source directory doesn't exist: " << sourceDir << "\n";
+            #endif
             return false;
         }
 
         if (!fs::is_directory(sourceDir)) {
-            std::cerr << "Source is not a directory: " << sourceDir << "\n";
+            #ifdef _DEBUG
+                std::cerr << "Source is not a directory: " << sourceDir << "\n";
+            #endif
             return false;
         }
 
         #ifdef _DEBUG
-                std::cout << "Creating target directory: " << targetDir << "\n";
+            std::cout << "Creating target directory: " << targetDir << "\n";
         #endif
 
         fs::create_directories(targetDir);
@@ -134,7 +153,10 @@ bool CopyDirectoryRecursive(const fs::path& sourceDir, const fs::path& targetDir
             }
 
             catch (const fs::filesystem_error& e) {
+#ifdef _DEBUG
                 std::cerr << "Error processing " << entry.path() << ": " << e.what() << "\n";
+
+#endif
             }
         }
 
@@ -148,7 +170,9 @@ bool CopyDirectoryRecursive(const fs::path& sourceDir, const fs::path& targetDir
         return (totalFiles > 0 || totalDirs > 0);
     }
     catch (const std::exception& e) {
+#ifdef _DEBUG
         std::cerr << "EXCEPTION in CopyDirectoryRecursive: " << e.what() << "\n";
+#endif
         return false;
     }
 }
@@ -159,9 +183,8 @@ void MakeFiles::MakeAPPDATAFolders() {
     fs::path parentPath = currentDir.parent_path().parent_path().parent_path();
     fs::path AssetTemplateFolder = parentPath / "UntilitedGameEngine";
 
+#ifdef _DEBUG
     std::cout << "\n=== MAKE APPDATA FOLDERS ===\n";
-
-    // Luo oma alihakemisto AppDataan
 
     std::cout << "DEBUG INFO:\n";
     std::cout << "currentDir: " << currentDir << "\n";
@@ -170,40 +193,59 @@ void MakeFiles::MakeAPPDATAFolders() {
     std::cout << "AssetTemplateFolder exists: " << fs::exists(AssetTemplateFolder) << "\n";
     std::cout << "AppData Target Folder: " << appDataTarget << "\n";
     std::cout << "AppData Target exists: " << fs::exists(appDataTarget) << std::endl;
+#endif
+
 
     if (fs::exists(AssetTemplateFolder) && fs::is_directory(AssetTemplateFolder)) {
+#ifdef _DEBUG
         std::cout << "AssetTemplateFolder EXISTS and is a directory!\n";
 
-        // Tulosta tarkempaa tietoa kansiosta
         std::cout << "\nDetailed content of AssetTemplateFolder:\n";
+#endif
+
         try {
             int fileCount = 0;
             int dirCount = 0;
             for (const auto& entry : fs::recursive_directory_iterator(AssetTemplateFolder)) {
                 if (entry.is_regular_file()) {
-                    std::cout << "  FILE: " << entry.path() << " (size: "
-                        << fs::file_size(entry.path()) << " bytes)\n";
+                    #ifdef _DEBUG
+                        std::cout << "  FILE: " << entry.path() << " (size: "
+                            << fs::file_size(entry.path()) << " bytes)\n";
+                    #endif
+
                     fileCount++;
                 }
                 else if (entry.is_directory()) {
-                    std::cout << "  DIR: " << entry.path() << "\n";
+                    #ifdef _DEBUG
+                        std::cout << "  DIR: " << entry.path() << "\n";
+                    #endif
                     dirCount++;
                 }
             }
-            std::cout << "Total: " << fileCount << " files, " << dirCount << " directories\n";
+            #ifdef _DEBUG
+                std::cout << "Total: " << fileCount << " files, " << dirCount << " directories\n";
+            #endif
         }
         catch (const fs::filesystem_error& e) {
-            std::cerr << "Error reading directory: " << e.what() << "\n";
+            #ifdef _DEBUG
+                std::cerr << "Error reading directory: " << e.what() << "\n";
+            #endif
         }
 
-        std::cout << "\nAttempting to copy files recursively...\n";
+        #ifdef _DEBUG
+            std::cout << "\nAttempting to copy files recursively...\n";
+        #endif
         bool success = CopyDirectoryRecursive(AssetTemplateFolder, appDataTarget);
 
         if (success) {
-            std::cout << "SUCCESS: Files copied to: " << appDataTarget << "\n";
+            #ifdef _DEBUG
+                std::cout << "SUCCESS: Files copied to: " << appDataTarget << "\n";
+            #endif
 
             if (fs::exists(appDataTarget) && fs::is_directory(appDataTarget)) {
-                std::cout << "\nFiles now in AppData:\n";
+                #ifdef _DEBUG
+                    std::cout << "\nFiles now in AppData:\n";
+                #endif
                 try {
                     int copiedCount = 0;
                     for (const auto& entry : fs::recursive_directory_iterator(appDataTarget)) {
@@ -211,29 +253,45 @@ void MakeFiles::MakeAPPDATAFolders() {
                             copiedCount++;
                         }
                     }
-                    std::cout << "Total files copied: " << copiedCount << "\n";
+                    #ifdef _DEBUG
+                        std::cout << "Total files copied: " << copiedCount << "\n";
+                    #endif
                 }
                 catch (const fs::filesystem_error& e) {
-                    std::cerr << "Error reading target directory: " << e.what() << "\n";
+                    #ifdef _DEBUG
+                        std::cerr << "Error reading target directory: " << e.what() << "\n";
+                    #endif
                 }
             }
             else {
-                std::cout << "WARNING: Target directory doesn't exist or is not a directory!\n";
+                #ifdef _DEBUG
+                    std::cout << "WARNING: Target directory doesn't exist or is not a directory!\n";
+                #endif
             }
         }
         else {
-            std::cout << "FAILED to copy files!\n";
+            #ifdef _DEBUG
+                std::cout << "FAILED to copy files!\n";
+            #endif
         }
     }
     else {
-        std::cout << "ERROR: AssetTemplateFolder DOES NOT EXIST or is not a directory!\n";
-        std::cout << "\nContents of parent directory:\n";
+        #ifdef _DEBUG
+            std::cout << "ERROR: AssetTemplateFolder DOES NOT EXIST or is not a directory!\n";
+            std::cout << "\nContents of parent directory:\n";
+        #endif
+
         for (const auto& entry : fs::directory_iterator(parentPath)) {
-            std::cout << "  " << entry.path().filename()
-                << (entry.is_directory() ? " [DIR]" : " [FILE]") << "\n";
+            #ifdef _DEBUG
+                std::cout << "  " << entry.path().filename()
+                                << (entry.is_directory() ? " [DIR]" : " [FILE]") << "\n";
+            #endif
+            
         }
     }
 
-    std::cout << "=== END MAKE APPDATA FOLDERS ===\n\n";
+    #ifdef _DEBUG
+        std::cout << "=== END MAKE APPDATA FOLDERS ===\n\n";
+    #endif
 #endif
 }
