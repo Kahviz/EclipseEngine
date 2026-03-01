@@ -180,15 +180,26 @@ bool CopyDirectoryRecursive(const fs::path& sourceDir, const fs::path& targetDir
 void MakeFiles::MakeAPPDATAFolders() {
 #ifdef INEDITOR == 1
     fs::path currentDir = fs::current_path();
-    fs::path parentPath = currentDir.parent_path().parent_path().parent_path();
-    fs::path AssetTemplateFolder = parentPath / "UntilitedGameEngine";
+
+    // Oletetaan että UntilitedGameEngine on projektin juuressa
+    fs::path projectRoot = currentDir;
+
+    // Etsitään projektin juuri (missä UntilitedGameEngine sijaitsee)
+    while (!fs::exists(projectRoot / "UntilitedGameEngine") &&
+        projectRoot.has_parent_path() &&
+        projectRoot != projectRoot.root_path()) {
+        projectRoot = projectRoot.parent_path();
+    }
+
+    fs::path AssetTemplateFolder = projectRoot / "UntilitedGameEngine";
+
 
 #ifdef _DEBUG
-    std::cout << "\n=== MAKE APPDATA FOLDERS ===\n";
+    std::cout << "\nMAKE APPDATA FOLDERS\n";
 
     std::cout << "DEBUG INFO:\n";
     std::cout << "currentDir: " << currentDir << "\n";
-    std::cout << "parentPath: " << parentPath << "\n";
+    std::cout << "projectRoot: " << projectRoot << "\n";
     std::cout << "AssetTemplateFolder: " << AssetTemplateFolder << "\n";
     std::cout << "AssetTemplateFolder exists: " << fs::exists(AssetTemplateFolder) << "\n";
     std::cout << "AppData Target Folder: " << appDataTarget << "\n";
@@ -281,7 +292,7 @@ void MakeFiles::MakeAPPDATAFolders() {
             std::cout << "\nContents of parent directory:\n";
         #endif
 
-        for (const auto& entry : fs::directory_iterator(parentPath)) {
+        for (const auto& entry : fs::directory_iterator(projectRoot)) {
             #ifdef _DEBUG
                 std::cout << "  " << entry.path().filename()
                                 << (entry.is_directory() ? " [DIR]" : " [FILE]") << "\n";

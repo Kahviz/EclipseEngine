@@ -17,13 +17,11 @@ void CameraControl::MakeCameraControls(Window& wnd, float deltaTime)
 
     GLFWwindow* glfwWND = wnd.GetWindow();
 
-    // Shift nopeutus
     if (glfwGetKey(glfwWND, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
         speed = 100.0f * deltaTime;
     }
 
-    // Liike
     if (glfwGetKey(glfwWND, GLFW_KEY_A) == GLFW_PRESS)
         Cam.AdjustPosition(-right.x * speed, -right.y * speed, -right.z * speed);
 
@@ -42,7 +40,6 @@ void CameraControl::MakeCameraControls(Window& wnd, float deltaTime)
     if (glfwGetKey(glfwWND, GLFW_KEY_E) == GLFW_PRESS)
         Cam.AdjustPosition(0.0f, speed, 0.0f);
 
-    // Esim. EngineDoFrame
     static double mouseX, mouseY;
     static double lastX, lastY;
     static bool firstmouse = true;

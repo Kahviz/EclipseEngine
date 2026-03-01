@@ -2,6 +2,7 @@
 #include "Runtime/Engine.h"
 #include "SetupPaths/MakeFiles.h"
 #include "Misc/Profiler/Profiler.h"
+#include <thread>
 
 int main() {
     MakeFiles mf;
@@ -20,9 +21,12 @@ int main() {
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(3));
         return -5;
     }
 
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     std::cout << "This is the end..." << std::endl;
+
     return 0;
 }

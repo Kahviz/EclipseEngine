@@ -39,7 +39,7 @@ bool Graphics::InitGraphics(GLFWwindow* window)
 
 void Graphics::SetRenderTargetToScene() {
     #if DIRECTX11 == 1
-        //DR.get()->SetRenderTargetToScene();
+        DR.get()->SetRenderTargetToScene();
     #else
 
     #endif
@@ -61,6 +61,7 @@ void Graphics::ReSizeWindow(int width, int height, Window* wnd)
 
         DR.get()->ReSizeWindow(width, height, hwnd);
     #else
+        VR.get()->RecreateSwapchain();
 
     #endif
 }
@@ -111,10 +112,9 @@ void Graphics::CreateSceneResources(int width, int height) {
 Camera& Graphics::GetCamera()
 {
     #if DIRECTX11 == 1
-            return DR.get()->GetCamera();
+        return DR.get()->GetCamera();
     #else
-            static Camera defaultCamera;  // Staattinen oletuskamera
-            return defaultCamera;
+        return VR.get()->GetCamera();
     #endif
 }
 

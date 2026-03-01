@@ -12,10 +12,11 @@
 #include "Mesh/Vulkan/MeshVulkan.h"
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
+#include <CameraControl.h>
 
 bool VulkanRender::Init(GLFWwindow* window)
 {
-#ifdef _DEBIG
+#ifdef _DEBUG
     std::cout << "Vulkan Init Started\n";
 #endif
 
@@ -181,9 +182,9 @@ bool VulkanRender::Init(GLFWwindow* window)
     }
     else {
         extent.width = std::max<uint32_t>(surfaceCapabilities.minImageExtent.width,
-            std::min<uint32_t>(surfaceCapabilities.maxImageExtent.width, static_cast<uint32_t>(windowWidth)));
+            std::min<uint32_t>(surfaceCapabilities.maxImageExtent.width, static_cast<uint32_t>(screen_width)));
         extent.height = std::max<uint32_t>(surfaceCapabilities.minImageExtent.height,
-            std::min<uint32_t>(surfaceCapabilities.maxImageExtent.height, static_cast<uint32_t>(windowHeight)));
+            std::min<uint32_t>(surfaceCapabilities.maxImageExtent.height, static_cast<uint32_t>(screen_height)));
     }
 
     uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
@@ -394,14 +395,14 @@ bool VulkanRender::Init(GLFWwindow* window)
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)windowWidth;
-    viewport.height = (float)windowHeight;
+    viewport.width = (float)screen_width;
+    viewport.height = (float)screen_height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
-    scissor.extent = { (uint32_t)windowWidth, (uint32_t)windowHeight };
+    scissor.extent = { (uint32_t)screen_width, (uint32_t)screen_height };
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -460,6 +461,17 @@ bool VulkanRender::Init(GLFWwindow* window)
     pipelineInfo.layout = pipelineLayout;
     pipelineInfo.renderPass = renderPass;
     pipelineInfo.subpass = 0;
+
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    VkDynamicState dynamicStates[] = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+    dynamicState.dynamicStateCount = 2;
+    dynamicState.pDynamicStates = dynamicStates;
+
+    pipelineInfo.pDynamicState = &dynamicState;
 
     if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create graphics pipeline!");
@@ -657,6 +669,22 @@ void VulkanRender::RecordCommandBuffer(uint32_t imageIndex, bool renderImGui)
     VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
     vkBeginCommandBuffer(cmd, &beginInfo);
 
+    // Aseta dynaaminen viewport (TÄRKEÄ: screen_width/height päivittyvät automaattisesti)
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float)screen_width;
+    viewport.height = (float)screen_height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    // Aseta dynaaminen scissor
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = { (uint32_t)screen_width, (uint32_t)screen_height };
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
     VkRenderPassBeginInfo rp{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
     rp.renderPass = renderPass;
     rp.framebuffer = swapchainFramebuffers[imageIndex];
@@ -669,6 +697,7 @@ void VulkanRender::RecordCommandBuffer(uint32_t imageIndex, bool renderImGui)
     vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
     for (const auto& drawCmd : drawCommands)
     {
         uint32_t dynamicOffset = drawCmd.objectIndex * dynamicAlignment;
@@ -771,19 +800,16 @@ void VulkanRender::CreateImageViews() {
 
 
 void VulkanRender::CleanupSwapchain() {
-    // Framebufferit
     for (auto framebuffer : swapchainFramebuffers) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
     swapchainFramebuffers.clear();
 
-    // Image viewit
     for (auto imageView : swapchainImageViews) {
         vkDestroyImageView(device, imageView, nullptr);
     }
     swapchainImageViews.clear();
 
-    // Komentopuskurit (vapautetaan mutta ei tuhota)
     if (!commandBuffers.empty()) {
         vkFreeCommandBuffers(device, commandPool,
             static_cast<uint32_t>(commandBuffers.size()),
@@ -791,7 +817,6 @@ void VulkanRender::CleanupSwapchain() {
         commandBuffers.clear();
     }
 
-    // Swapchain itse
     if (swapchain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(device, swapchain, nullptr);
         swapchain = VK_NULL_HANDLE;
@@ -832,12 +857,28 @@ void VulkanRender::CreateSwapchain() {
 
     VkExtent2D extent = surfaceCapabilities.currentExtent;
     if (extent.width == UINT32_MAX || extent.width == 0) {
-        /*
-        * extent.width = std::max(surfaceCapabilities.minImageExtent.width,
-            std::min(surfaceCapabilities.maxImageExtent.width, static_cast<uint32_t>(windowWidth)));
-        extent.height = std::max(surfaceCapabilities.minImageExtent.height,
-            std::min(surfaceCapabilities.maxImageExtent.height, static_cast<uint32_t>(windowHeight)));
-        */
+        // width
+        uint32_t minWidth = surfaceCapabilities.minImageExtent.width;
+        uint32_t maxWidth = surfaceCapabilities.maxImageExtent.width;
+        uint32_t targetWidth = static_cast<uint32_t>(screen_width);
+
+        if (targetWidth < minWidth)
+            extent.width = minWidth;
+        else if (targetWidth > maxWidth)
+            extent.width = maxWidth;
+        else
+            extent.width = targetWidth;
+
+        uint32_t minHeight = surfaceCapabilities.minImageExtent.height;
+        uint32_t maxHeight = surfaceCapabilities.maxImageExtent.height;
+        uint32_t targetHeight = static_cast<uint32_t>(screen_height);
+
+        if (targetHeight < minHeight)
+            extent.height = minHeight;
+        else if (targetHeight > maxHeight)
+            extent.height = maxHeight;
+        else
+            extent.height = targetHeight;
     }
 
     uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
@@ -963,7 +1004,7 @@ void VulkanRender::createDescriptorSets() {
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
-Matrix4x4 CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar) {
+Matrix4x4 VulkanRender::CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar) {
     Matrix4x4 result;
 
     float f = 1.0f / tanf(fovY * 0.5f);
@@ -1008,16 +1049,12 @@ void VulkanRender::updateUniformBuffer(
         color.z / 255.0f
     );
 
-    Matrix4x4 view = MatrixLookAtLH(
-        Vector3(2.0f, 2.0f, 2.0f),
-        Vector3(0.0f, 0.0f, 0.0f),
-        Vector3(0.0f, 1.0f, 0.0f)
-    );
+    Matrix4x4 view = camera.GetViewMatrix();
 
     ubo.view = view;
 
     float fovY = 45.0f * PI / 180.0f;
-    float aspect = (float)swapchainExtent.width / (float)swapchainExtent.height;
+    float aspect = (float)screen_width / (float)screen_height;
 
     ubo.proj = CreateVulkanPerspective(fovY, aspect, 0.1f, 10.0f);
 
@@ -1079,8 +1116,19 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
         RecreateSwapchain();
         return;
     }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        MakeAError("Failed to acquire swapchain image");
+        return;
+    }
 
-    RecordCommandBuffer(imageIndex,true);
+    if (framebufferResized) {
+        framebufferResized = false;
+        drawCommands.clear();
+        RecreateSwapchain();
+        return;
+    }
+
+    RecordCommandBuffer(imageIndex, true);
 
     VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
     VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
@@ -1107,9 +1155,22 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
     presentInfo.pSwapchains = &swapchain;
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(graphicsQueue, &presentInfo);
+    result = vkQueuePresentKHR(graphicsQueue, &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+        framebufferResized = false;
+        drawCommands.clear();
+        RecreateSwapchain();
+    }
+    else if (result != VK_SUCCESS) {
+        MakeAError("Failed to present swapchain image");
+    }
 
     drawCommands.clear();
+}
+Camera& VulkanRender::GetCamera()
+{
+    return camera;
 }
 
 VkCommandBuffer VulkanRender::BeginSingleTimeCommands() {

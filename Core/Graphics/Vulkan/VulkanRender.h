@@ -15,6 +15,9 @@
 #include <unordered_map>
 #include "Mesh/Vulkan/MeshVulkan.h"
 #include "GLOBALS.h"
+#include <Camera.h>
+#include <minmax.h>
+#include <algorithm>
 
 class VulkanRender {
 public:
@@ -33,11 +36,12 @@ public:
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();
+    Matrix4x4 CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar);
     void updateUniformBuffer(uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos, INT3 color);
     bool RenderAMesh(const Instance* drawable, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
 
     void DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables);
-
+    Camera& GetCamera();
     VkCommandBuffer BeginSingleTimeCommands();
 
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -58,11 +62,15 @@ public:
     VkCommandBuffer GetCurrentFrameCommandBuffer() {
         return commandBuffers[currentFrame];
     }
+
 private:
     struct DrawCommand {
         const MeshVK* mesh;
         uint32_t objectIndex;
     };
+
+    Camera camera;
+    bool framebufferResized = false;
 
     int currentFrame = 0;
     std::vector<DrawCommand> drawCommands;
@@ -72,8 +80,7 @@ private:
     size_t maxInstances = 100;
 
     uint32_t imageIndex;
-    int windowWidth = 800;
-    int windowHeight = 800;
+
     size_t graphicsFamilyIndex = -1;
     size_t dynamicAlignment;
 

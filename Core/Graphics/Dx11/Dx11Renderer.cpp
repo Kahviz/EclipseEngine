@@ -52,7 +52,6 @@ void Dx11Renderer::SetRenderTargetToScene() {
 }
 
 void Dx11Renderer::SetRenderTargetToBackBuffer() {
-    // TÄRKEÄ: Älä aseta  view'tä nulliksi!
     pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(), pDepthStencilView.Get());
 }
 

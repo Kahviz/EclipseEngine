@@ -5,6 +5,7 @@
 #include <backends/imgui_impl_dx11.h>
 #include <backends/imgui_impl_win32.h>
 #include "GLOBALS.h"
+#include "Graphics/Graphics.h"
 
 struct MeshButton
 {
@@ -177,23 +178,25 @@ void MakeGui::MakeIMViewPort(Window& wnd)
     viewport_width = viewportSize.x;
 #endif
 
-    /*
-    ID3D11ShaderResourceView* srv = wnd.GetGraphics().GetSceneSRV();
+    
+    #if DIRECTX11 == 1
+        ID3D11ShaderResourceView* srv = wnd.GetGraphics().GetSceneSRV();
 
-    if (srv) {
-        ImVec2 currentSize = ImGui::GetWindowSize();
+        if (srv) {
+            ImVec2 currentSize = ImGui::GetWindowSize();
 
-        if (currentSize.x != previousSize.x || currentSize.y != previousSize.y)
-        {
-            
+            if (currentSize.x != previousSize.x || currentSize.y != previousSize.y)
+            {
+
+            }
+            ImGui::Image((ImTextureID)srv, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
+
         }
-        ImGui::Image((ImTextureID)srv, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
-       
-    }
-    else {
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), "No Viewport (No ID3D11ShaderResourceView)  I donno what to do....");
-    }
-    */
+        else {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "No Viewport (No ID3D11ShaderResourceView)  I donno what to do....");
+        }
+    #endif
+
     ImGui::End();
     ImGui::PopStyleVar();
 

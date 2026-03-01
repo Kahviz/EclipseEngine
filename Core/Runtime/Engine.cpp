@@ -204,31 +204,27 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
 }
 
 void ScreenResizerDetector(Window* wnd) {
-    int width, height;
-    glfwGetFramebufferSize(wnd->GetWindow(), &width, &height);
+    static int lastWidth = 0, lastHeight = 0;
+    glfwGetFramebufferSize(wnd->GetWindow(), &screen_width, &screen_height);
+
+    if (screen_width != lastWidth || screen_height != lastHeight) {
+        wnd->GetGraphics().ReSizeWindow(screen_width, screen_height, wnd);
+        lastWidth = screen_width;
+        lastHeight = screen_height;
+#ifdef _DEBUG
+    std::cout << "Screen resized to: " << screen_width << "x" << screen_height << std::endl;
+#endif
+    }
 
     ImGuiIO& io = ImGui::GetIO();
-    io.IniFilename = nullptr;
-    io.LogFilename = nullptr;
-    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DisplaySize = ImVec2((float)screen_width, (float)screen_height);
 
     int window_width, window_height;
     glfwGetWindowSize(wnd->GetWindow(), &window_width, &window_height);
-
     io.DisplayFramebufferScale = ImVec2(
-        window_width > 0 ? (float)width / (float)window_width : 1.0f,
-        window_height > 0 ? (float)height / (float)window_height : 1.0f
+        window_width > 0 ? (float)screen_width / (float)window_width : 1.0f,
+        window_height > 0 ? (float)screen_height / (float)window_height : 1.0f
     );
-
-    if (screen_width != width || screen_height != height) {
-        wnd->GetGraphics().ReSizeWindow(width, height, wnd);
-        screen_width = width;
-        screen_height = height;
-
-        #ifdef _DEBUG
-            std::cout << "Screen resized to: " << screen_width << "x" << screen_height << std::endl;
-        #endif
-    }
 }
 
 void Engine::EngineDoFrame(Window* wnd, float deltatime)
@@ -238,8 +234,6 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
         return;
     }
     static bool CubeB = false;
-
-
 
     Graphics& graphics = wnd->GetGraphics();
 
@@ -268,15 +262,15 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     graphics.ClearBuffer(0.0f, 0.0f, 1.0f);
 
     if (!CubeB) {
-        window.GetGraphics().ReSizeWindow(screen_width, screen_height, wnd);
         AddAMesh("\\Cube.obj", "TestCube", { 0,0,0 }, { 0.5,0.5,0.5 }, false);
-
+        wnd->GetGraphics().GetCamera().SetPosition({ 5,5,5 });
+        wnd->GetGraphics().GetCamera().SetRotation({ 0.625999,3.926,0 });
         CubeB = true;
     }
 
     bool ctrlPressed = (glfwGetKey(wnd->GetWindow(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     if (ctrlPressed) {
-        AddAMesh("\\Cylinder.obj", "TestCylinder", { 1,0,0 }, { 0.5,1,0.5 }, false);
+        AddAMesh("\\Cylinder.obj", "TestCylinder", { 0,0,0 }, { 0.5,1,0.5 }, false);
     }
 
 #if INEDITOR == 1
@@ -289,6 +283,9 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 #if INEDITOR == 1
     graphics.SetRenderTargetToBackBuffer();
 #endif
+
+    //Draws
+    
 
 #if INEDITOR == 1
     if (ImGuiInited) {
@@ -307,17 +304,16 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
         );
     }
 #endif
-    //Fps
 
-    //Draws
+#if VULKAN == 1
     for (auto& Drawableptr : Drawables) {
         auto Drawable = Drawableptr.get();
         if (Drawable->CanDraw()) {
-            #if VULKAN == 1
-                 wnd->GetGraphics().VR.get()->RenderAMesh(Drawable, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f, Drawable->UniqueID);
-            #endif
+            wnd->GetGraphics().VR.get()->RenderAMesh(Drawable, Drawable->Orientation, Drawable->pos, Drawable->Size, Drawable->color, Drawable->Velocity, Drawable->Anchored, 1.0f, 1.0f, Drawable->UniqueID);
         }
     }
+#endif
+    graphics.DrawAFrame(deltatime, Drawables);
 
     CameraControl camC;
     if (!ctrlPressed)
@@ -331,7 +327,6 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
         #endif
     }
 #endif
-    graphics.DrawAFrame(deltatime, Drawables);
 
     float fps = 1.0f / deltatime;
     profiler.AddFPS(static_cast<int>(fps));
