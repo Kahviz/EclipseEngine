@@ -2,9 +2,10 @@
 #include "ErrorHandling/ErrorMessage.h"
 #include <format>
 #include <string>
+//Nothing
 
 #ifdef _DEBUG
-#define ASSERT(condition, message) \
+#define UGE_ASSERT(condition, message) \
         if (!(condition)) { \
             std::string AssertString = std::format( \
                 "ASSERT failed because {} was null/nullptr - {}", \
