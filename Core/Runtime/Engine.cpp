@@ -7,6 +7,8 @@
 #include <GLOBALS.h>
 #include <CameraControl.h>
 #include "MakeGui.h"
+#include "UGE_ASSERTS.h"
+
 #ifdef _WIN32
     #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
@@ -75,7 +77,7 @@ Engine::Engine()
             if (err != VK_SUCCESS) {
                 std::cerr << "Vulkan Error: " << err << std::endl;
             }
-            };
+        };
 
         if (!ImGui_ImplVulkan_Init(&init_info)) {
             throw std::runtime_error("Failed to initialize ImGui Vulkan backend");
@@ -84,7 +86,6 @@ Engine::Engine()
         ImGuiInited = true;
 #endif
         ImGuiIO& io = ImGui::GetIO();
-
         std::string fontPath = fonts + "\\RobotoFont.ttf";
         ImFont* font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0f);
 
@@ -100,6 +101,8 @@ Engine::Engine()
         window.SetWindowIcon(window.GetWindow());
         ImGuiIO& IO = ImGui::GetIO();
         IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        IO.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
+
     }
 }
 Engine::~Engine()

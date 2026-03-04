@@ -38,7 +38,9 @@ set(IMGUI_SOURCES
 )
 
 #Definitions
-add_definitions(-DPROJECT_DIR="${CMAKE_SOURCE_DIR}/")
+add_definitions(
+    -DPROJECT_DIR="${CMAKE_SOURCE_DIR}/"
+)
 
 #Executable
 add_executable(UntitledGameEngine
@@ -64,7 +66,8 @@ add_executable(UntitledGameEngine
     Core/Graphics/Vulkan/ScoreCounter.cpp
     Core/Debugging/Profiler/Profiler.cpp
     ${IMGUI_SOURCES}
- "Core/Debugging/Functions/ASSERT.h")
+    Core/Debugging/Functions/UGE_ASSERTS.h
+)
 
 # ---------------- Include dirs ----------------
 target_include_directories(UntitledGameEngine PRIVATE
@@ -75,6 +78,7 @@ target_include_directories(UntitledGameEngine PRIVATE
     Core/Libs/ImGui
     Core/Libs/ImGui/backends
     Core/Instances/Instances/
+    Core/Debugging/Functions/
 
     ${Vulkan_INCLUDE_DIRS}
 )

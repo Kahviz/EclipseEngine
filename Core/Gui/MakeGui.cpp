@@ -57,6 +57,23 @@ FLOAT3 MakeVec3TextEdit(Instance* inst,
 
 void MakeGui::MakeIMGui(Window& wnd, std::vector<std::unique_ptr<Instance>>& Drawables, std::function<Instance* (const std::string&, const std::string&, FLOAT3, FLOAT3, bool)> AddAMesh, float* Color3, bool Selec)
 { 
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    ImGui::Begin("Color Picker");
+
+    ImGui::ColorEdit3("Clear Color", (float*)&clear_color);
+
+    ImGui::ColorEdit4("Clear Color with Alpha", (float*)&clear_color);
+
+    ImGui::End();
+
+    colors[ImGuiCol_WindowBg] = ImVec4(0.04f, 0.04f, 0.04f,1.0f);
+    colors[ImGuiCol_Border] = ImVec4(0.07f, 0.07f, 0.07f,1.0f);
+    colors[ImGuiCol_DockingPreview] = ImVec4(0.015f, 0.015f, 0.015f, 1.0f);
+
     world.Name = "World";
     world.Parent = nullptr;
     world.CodeTag = "World";
