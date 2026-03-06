@@ -68,7 +68,7 @@ add_executable(UntitledGameEngine
     ${IMGUI_SOURCES}
     Core/Debugging/Functions/UGE_ASSERTS.h
     Core/Libs/ImGui/imgui_demo.cpp
-)
+ "include/Math/M_Utils.h" "include/Math/StoreFloat.h" "include/Math/MatrixLookAtLH.h" "include/Math/TransformNormal.h" "include/Math/LoadINT.h" "include/Math/Variables.h")
 
 # ---------------- Include dirs ----------------
 target_include_directories(UntitledGameEngine PRIVATE

@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
-//Part OF UntilitedMath
 
+#include "Vector4.h"
 
 struct INT3
 {
@@ -37,4 +37,18 @@ inline INT3 operator/(const INT3& a, int scalar)
 inline int dot(const INT3& a, const INT3& b)
 {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline int MagnitudeINT3(INT3 a, INT3 b) {
+	int dx = abs(a.x - b.x);
+	int dz = abs(a.z - b.z);
+	int dy = abs(a.y - b.y);
+
+	return dx + dz + dy;
+}
+
+inline void StoreINT3(INT3& Int, Vector4& vec) {
+	Int.x = static_cast<int>(vec.x);
+	Int.y = static_cast<int>(vec.y);
+	Int.z = static_cast<int>(vec.z);
 }

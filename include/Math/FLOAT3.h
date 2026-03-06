@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 
-//Part OF UntilitedMath
 struct FLOAT3
 {
 	float x;
@@ -51,4 +50,12 @@ inline FLOAT3 operator/(const FLOAT3& a, float scalar)
 inline float dot(const FLOAT3& a, const FLOAT3& b)
 {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline float MagnitudeFLOAT3(FLOAT3 a, FLOAT3 b) {
+	float dx = abs(a.x - b.x);
+	float dz = abs(a.z - b.z);
+	float dy = abs(a.y - b.y);
+
+	return dx + dz + dy;
 }

@@ -101,7 +101,6 @@ void Dx11Renderer::CreateDeviceAndSwapChain(int width, int height, HWND hWnd)
     );
 
     if (FAILED(hr)) {
-        // Yritä ilman debug flagia
         hr = D3D11CreateDeviceAndSwapChain(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,

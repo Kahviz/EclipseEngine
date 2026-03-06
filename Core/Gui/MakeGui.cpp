@@ -181,7 +181,9 @@ void MakeGui::MakeIMGui(Window& wnd, std::vector<std::unique_ptr<Instance>>& Dra
     if (ImGui::Begin("UntilitedGameEngine", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize)) {
         if (ImGui::BeginTabBar("##TABS")) {
             if (ImGui::BeginTabItem("Home")) {
-                ImGui::Text("Select, Move,Scale,Rotation,Color,Anhored,Add");
+                if (ImGui::Button("Move",ImVec2(screen_w / 10,screen_h / 10))) {
+
+                }
                 ImGui::EndTabItem();
             }
 
