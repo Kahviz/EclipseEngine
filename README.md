@@ -20,6 +20,7 @@
 1. Vulkan SDK
 2. Windows
 3. Vs Commynity 2026
+4. CMake
 
 # Contact me on Discord
 My Discord is kahviz_
