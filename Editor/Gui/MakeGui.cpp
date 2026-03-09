@@ -6,6 +6,7 @@
 #include <backends/imgui_impl_win32.h>
 #include "GLOBALS.h"
 #include "Graphics/Graphics.h"
+#include <imgui_internal.h>
 
 struct MeshButton
 {
@@ -88,10 +89,37 @@ void MakeGui::MakeStyle() {
     style.GrabRounding = GrabRounding;
 }
 
+void MakeFloat3Edit(const char* Name, FLOAT3& vec) {
+    char label[128];
+    static int Times = 0;
+    Times += 1;
+
+    snprintf(label, sizeof(label), "%s: ", Name);
+
+    ImGui::Text("%s", label);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(80);
+    ImGui::InputFloat("##x", &vec.x, 0.0f, 0.0f, "%g", ImGuiInputTextFlags_CharsDecimal);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(80);
+    ImGui::InputFloat("##y", &vec.y, 0.0f, 0.0f, "%g", ImGuiInputTextFlags_CharsDecimal);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(80);
+    ImGui::InputFloat("##z", &vec.z, 0.0f, 0.0f, "%g", ImGuiInputTextFlags_CharsDecimal);
+}
+
+
 void MakeGui::MakeIMGui(Window& wnd, std::vector<std::unique_ptr<Instance>>& Drawables, std::function<Instance* (const std::string&, const std::string&, FLOAT3, FLOAT3, bool)> AddAMesh, float* Color3, bool Selec)
 { 
     MakeStyle();
     
+    if (ImGui::IsAnyItemActive()) {
+        Typing = true;
+    }
+    else {
+        Typing = false;
+    }
+
     world.Name = "World";
     world.Parent = nullptr;
     world.CodeTag = "World";
@@ -129,9 +157,54 @@ void MakeGui::MakeIMGui(Window& wnd, std::vector<std::unique_ptr<Instance>>& Dra
     float window_h = screen_h / 2.0f;
 
     if (CanChange) {
-        ImGui::SetNextWindowSize(ImVec2(window_w, window_h), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(window_w * 1.5f, window_h / 1.7f), ImGuiCond_Always);
 
-        ImGui::SetNextWindowPos(ImVec2(screen_w - window_w / 1.06f, screen_h / 4.0f), ImGuiCond_Always);
+        float desiredX = screen_w - window_w * 1.5f;
+        float desiredY = screen_h - screen_h / 3.45f;
+
+        float finalX = ImClamp(desiredX, 0.0f, screen_w - window_w * 1.5f);
+        float finalY = ImClamp(desiredY, 0.0f, screen_h - window_h / 2.0f);
+
+        ImGui::SetNextWindowPos(ImVec2(finalX, finalY), ImGuiCond_Always);
+    }
+
+    ImGui::Begin("Properties", nullptr,
+        ImGuiWindowFlags_AlwaysHorizontalScrollbar |
+        ImGuiWindowFlags_AlwaysVerticalScrollbar
+    );
+
+    for (const auto& Drawable : Drawables) {
+        if (Drawable.get()->Selected) {
+            Instance& inst = *Drawable.get();
+            
+            //Name
+            ImGui::Text("Name: ");
+            ImGui::SameLine();
+            ImGui::InputText("##Name", inst.NameText, sizeof(inst.NameText));
+            inst.Name = inst.NameText;
+            //Pos
+            MakeFloat3Edit("Position", inst.pos);
+           
+            //Size
+            //MakeFloat3Edit("Size", inst.Size);
+        }
+    }
+
+    ImGui::End();
+
+    if (!CanChange) {
+        float windowWidth = window_w * 1.5f;
+        float windowHeight = window_h / 1.0868f;
+
+        ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight), ImGuiCond_Always);
+
+        float desiredX = screen_w - window_w / 1.006f;
+        float desiredY = screen_h / 4.0f;
+
+        float finalX = ImClamp(desiredX, 0.0f, screen_w - windowWidth);
+        float finalY = ImClamp(desiredY, 0.0f, screen_h - windowHeight);
+
+        ImGui::SetNextWindowPos(ImVec2(finalX, finalY), ImGuiCond_Always);
     }
 
     ImGui::Begin("Explorer", nullptr,
@@ -232,7 +305,8 @@ bool MakeGui::MakeDashBoard()
         ImGuiWindowFlags_NoResize |   //No resize
         ImGuiWindowFlags_NoMove |     //No Moving
         ImGuiWindowFlags_NoCollapse |  //No Smalling
-        ImGuiWindowFlags_NoDocking
+        ImGuiWindowFlags_NoDocking |
+        ImGuiWindowFlags_NoBringToFrontOnFocus //No Bring To Front
     );
 
     ImGui::PopStyleColor();

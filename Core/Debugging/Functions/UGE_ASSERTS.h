@@ -2,7 +2,7 @@
 #include "ErrorHandling/ErrorMessage.h"
 #include <format>
 #include <string>
-#include <source_location> // C++20, tiedoston ja rivin numeroa varten
+#include <source_location>
 
 #if VULKAN == 1
 #include "Vulkan/vulkan.h"

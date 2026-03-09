@@ -14,7 +14,7 @@ extern int viewport_height = 200;
 bool InEditor = true;
 bool vSync = true;
 bool Running = true;
-
+bool Typing = false;
 float FOV = 100.0f;
 
 int Index = 0;

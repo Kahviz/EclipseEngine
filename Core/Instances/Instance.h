@@ -16,20 +16,22 @@ public:
 
     Instance* Parent = nullptr;
     std::vector<Instance*> Children;
+
     std::string Name;
+    char NameText[64] = "Instance";
 
     FLOAT3 pos = { 0.0f, 0.0f, 0.0f };
-    char PosText[64] = "0,0,0";
+    char PosText[128] = "0,0,0";
 
     //Color
     INT3 color = { 0,0,0 };
     INT3 originalColor = { 0,0,0 };
 
     FLOAT3 Size = { 1.0f, 1.0f, 1.0f };
-    char SizeText[64] = "1,1,1";
+    char SizeText[128] = "1,1,1";
 
     FLOAT3 Orientation = { 0.0f,0.0f,0.0f };
-    char OrientationText[64] = "0,0,0";
+    char OrientationText[128] = "0,0,0";
 
     int UniqueID = 0;
     bool Selected = false;

@@ -550,9 +550,6 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
 
         pContext->PSSetSamplers(0, 1, pSampler.GetAddressOf());
 
-        MakeAProblem(selectedPS == pPSTexture.Get() ?
-            "Käytetään TEXTURE shaderia\n" :
-            "Käytetään PERUS shaderia\n");
         if (inst.CanDraw()) {
             const Mesh& mesh = inst.OBJmesh;
             FLOAT3 Orientation = inst.Orientation;
@@ -563,41 +560,12 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
             bool Anchored = inst.Anchored;
             float Roughness = 1.0f;
             float Brightness = 1.0f;
-
-            if (!pContext || !pConstantBuffer || !pColorBuffer || !pLightingBuffer)
-                throw std::runtime_error("Dx11Renderer not properly initialized");
-
-            // Physics
-            float restitution = std::clamp(
-                (size.x + size.y + size.z) / 6.0f,
-                0.1f,
-                0.9f
-            );
-
-            if (Running && !Anchored)
-            {
-                // Gravity
-                Velocity.y -= Gravity * deltatime;
-
-                // Integrate
-                pos.x += Velocity.x * deltatime;
-                pos.y += Velocity.y * deltatime;
-                pos.z += Velocity.z * deltatime;
-
-                // Ground collision
-                if (pos.y < -10.0f)
-                {
-                    pos.y = -10.0f;
-                    Velocity.y = -Velocity.y * restitution;
-
-                    float friction = 0.9f;
-                    Velocity.x *= friction;
-                    Velocity.z *= friction;
-
-                    if (std::abs(Velocity.y) < 0.05f)
-                        Velocity.y = 0.0f;
-                }
-            }
+            
+            std::string UGE_ASSERT_DX11 = "Dx11Renderer not properly initialized";
+            UGE_ASSERT(pContext, UGE_ASSERT_DX11);
+            UGE_ASSERT(pConstantBuffer, UGE_ASSERT_DX11);
+            UGE_ASSERT(pColorBuffer, UGE_ASSERT_DX11);
+            UGE_ASSERT(pLightingBuffer, UGE_ASSERT_DX11);
 
             // Matrices
             XMMATRIX scale = XMMatrixScaling(size.x, size.y, size.z);

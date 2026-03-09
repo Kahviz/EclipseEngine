@@ -181,10 +181,8 @@ void MakeFiles::MakeAPPDATAFolders() {
 #ifdef INEDITOR == 1
     fs::path currentDir = fs::current_path();
 
-    // Oletetaan että UntilitedGameEngine on projektin juuressa
     fs::path projectRoot = currentDir;
 
-    // Etsitään projektin juuri (missä UntilitedGameEngine sijaitsee)
     while (!fs::exists(projectRoot / "UntilitedGameEngine") &&
         projectRoot.has_parent_path() &&
         projectRoot != projectRoot.root_path()) {

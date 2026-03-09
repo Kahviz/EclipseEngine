@@ -328,7 +328,7 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 #endif
 
     CameraControl camC;
-    if (!ctrlPressed)
+    if (!ctrlPressed && !Typing)
         camC.MakeCameraControls(*wnd, deltatime);
 
 #if INEDITOR == 1 

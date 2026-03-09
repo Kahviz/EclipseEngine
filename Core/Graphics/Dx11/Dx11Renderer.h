@@ -7,6 +7,7 @@
 #include <Instances/Instance.h>
 #include "GLOBALS.h"
 #include "Graphics/Texture/Texture.h"
+#include "UGE_ASSERTS.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;

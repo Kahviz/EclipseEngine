@@ -4,6 +4,19 @@ project(UntitledGameEngine)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+if(MSVC)
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<CONFIG:Debug,RelWithDebInfo>,ProgramDatabase,Embedded>")
+    
+    add_compile_options($<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:/Zi>)
+    
+    add_compile_options($<$<CONFIG:Debug>:/Od>)
+    
+    add_compile_options($<$<CONFIG:Debug>:/RTC1>)
+    
+    add_link_options($<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:/DEBUG:FULL>)
+endif()
+
 find_package(Vulkan REQUIRED)
 
 if(NOT Vulkan_FOUND)
@@ -81,7 +94,7 @@ add_executable(UntitledGameEngine
     include/Math/LoadINT.h
     include/Math/Variables.h 
     include/Math/FLOAT2.h
- "UntilitedGameEngine.h" "Core/Multiplatform/UntilitedPlatform.h")
+ "UntilitedGameEngine.h" "Core/Multiplatform/UntilitedPlatform.h" "Core/UntilitedPhysics/Gravity.h")
 
 target_include_directories(UntitledGameEngine PRIVATE
     include

@@ -33,4 +33,5 @@ extern bool InEditor;
 extern int Index;
 extern bool vSync;
 extern bool Running;
+extern bool Typing;
 extern float FOV;
