@@ -1,3 +1,4 @@
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -6,9 +7,10 @@
 #include "Window/Window.h"
 #include "GLOBALS.h"
 #if INEDITOR == 1
-    #include "../Editor/Gui/MakeGui.h"
+    #include "Gui/MakeGui.h"
 #endif
-#include <Debugging/Profiler/Profiler.h>
+#include "Debugging/Profiler/Profiler.h"
+#include "Instances/Instance.h"
 
 class Instance;
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <Instance.h>
+#include <Instances/Instance.h>
 
 struct Vec3 {
     float x, y, z;

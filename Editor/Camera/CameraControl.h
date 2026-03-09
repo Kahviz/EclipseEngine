@@ -2,7 +2,7 @@
 
 #include "Graphics/Graphics.h"
 #include "GLFW/glfw3.h"
-#include "Camera.h"
+#include "Camera/Camera.h"
 #include "Window/Window.h"
 
 class CameraControl

@@ -1,6 +1,5 @@
 #include "Raycasting.h"
 #include "Mesh/Mesh.h"
-#include "Instance.h"
 
 bool Raycasting::IsClicked(Instance* inst, const Vector3& rayOrigin, const Vector3& rayDir)
 {

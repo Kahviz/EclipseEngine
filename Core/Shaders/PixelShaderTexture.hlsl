@@ -21,14 +21,14 @@ struct PS_INPUT
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-    float3 baseColor = input.color;
+    float4 texColor = diffuseTexture.Sample(samplerState, input.tex);
 
     float3 lightDir = normalize(float3(1, 1, -1));
     float3 normal = normalize(input.normal);
 
     float diffuse = max(0.3f, dot(normal, lightDir));
 
-    float3 finalColor = baseColor * diffuse * (input.brightness / 2);
+    float3 finalColor = texColor.rgb * diffuse * (input.brightness / 2);
 
-    return float4(finalColor, 1.0f);
+    return float4(finalColor, texColor.a);
 }

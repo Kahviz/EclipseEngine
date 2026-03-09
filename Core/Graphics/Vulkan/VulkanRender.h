@@ -10,12 +10,12 @@
 #include "ScoreCounter.h"
 #include <GLFW/glfw3.h>
 #include "Vulkan/VulkanHelpers.h"
-#include <Instance.h>
+#include <Instances/Instance.h>
 #include "Instances/Vertex.h"
 #include <unordered_map>
 #include "Mesh/Vulkan/MeshVulkan.h"
 #include "GLOBALS.h"
-#include <Camera.h>
+#include <Camera/Camera.h>
 #include <minmax.h>
 #include <algorithm>
 

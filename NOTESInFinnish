@@ -3,6 +3,7 @@
 Jos Tulee Byte Error poista "using namespace std"
 
 --Jos näkyy 2d kato että ied (DX11) on oikein
+--Jos Uus shader ei toimi kato että CMakeList.txt compiletaan se
 
 --Really bad colission 
 float Radius = Drawables[i]->Size.x + Drawables[i]->Size.y +

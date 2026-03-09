@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Raycasting.h"
+#include "Services/Raycasting.h"
 
 #include <vector>
 #include <DirectXMath.h>
 #include <string>
-#include "Instance.h"
+#include "Instances/Instance.h"
 #include "Math/UntilitedMath.h"
 #include <Instances/Vertex.h>
 #include <Instances/Instances/Mesh/Mesh.h>

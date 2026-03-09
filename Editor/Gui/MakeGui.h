@@ -5,7 +5,7 @@
 #include <DirectXMath.h>
 #include "GLOBALS.h"
 #include <memory>
-#include "Instance.h"
+#include "Instances/Instance.h"
 #include "GLFW/glfw3.h"
 #include "Window/Window.h"
 

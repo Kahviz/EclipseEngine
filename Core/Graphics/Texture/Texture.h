@@ -36,8 +36,11 @@ public:
         return pTexture;
     }
 #endif
-
+    bool IsLoaded() {
+        return Loaded;
+    }
 private:
+    bool Loaded = false;
 #if DIRECTX11 == 1
     ComPtr<ID3D11ShaderResourceView> pTexture;
 #endif

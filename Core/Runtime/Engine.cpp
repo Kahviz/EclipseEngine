@@ -2,10 +2,9 @@
 #include <stdexcept>
 #include "chrono"
 #include <iostream>
-#include <Instance.h>
 #include <Object.h>
 #include <GLOBALS.h>
-#include <CameraControl.h>
+#include "../Editor/Camera/CameraControl.h"
 #include "UGE_ASSERTS.h"
 
 #ifdef _WIN32
@@ -194,7 +193,6 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
 
     std::string fullPath = assets + "\\Textures\\TestTexture.png";
     std::cout << fullPath << std::endl;
-
 
 #if DIRECTX11 == 1
     obj->texture.Load(fullPath, *window.GetGraphics().DR.get());

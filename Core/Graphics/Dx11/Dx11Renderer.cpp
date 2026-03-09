@@ -8,7 +8,7 @@
 #include "GLOBALS.h"
 #include <wrl/client.h>
 #include <wincodec.h>
-#include <Instance.h>
+#include <Instances/Instance.h>
 
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib,"d3dcompiler.lib")
@@ -236,8 +236,10 @@ void Dx11Renderer::CompileShaders()
 {
     ComPtr<ID3DBlob> vsBlob;
     ComPtr<ID3DBlob> psBlob;
+    ComPtr<ID3DBlob> psTextureBlob;
+    ComPtr<ID3DBlob> errorBlob;
 
-    // Vertex shader
+    // Vertex shader (sama molemmille)
     HRESULT hr = D3DCompileFromFile(
         L"VertexShader.hlsl",
         nullptr,
@@ -265,7 +267,32 @@ void Dx11Renderer::CompileShaders()
     }
     if (FAILED(hr)) throw std::runtime_error("Failed to compile Vertex shader");
 
-    // Pixel shader
+    // Luo vertex shader
+    hr = pDevice->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &pVS);
+    if (FAILED(hr)) throw std::runtime_error("Failed to create Vertex shader");
+
+    // Yritä ladata tekstuurillinen pixel shader (PixelShaderTexture.hlsl)
+    hr = D3DCompileFromFile(
+        L"PixelShaderTexture.hlsl",
+        nullptr,
+        nullptr,
+        "main",
+        "ps_5_0",
+        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+        0,
+        &psTextureBlob,
+        &errorBlob
+    );
+
+    bool textureShaderExists = SUCCEEDED(hr);
+
+    if (textureShaderExists) {
+        // Jos tekstuurishader löytyy, luo se
+        hr = pDevice->CreatePixelShader(psTextureBlob->GetBufferPointer(), psTextureBlob->GetBufferSize(), nullptr, &pPSTexture);
+        if (FAILED(hr)) textureShaderExists = false;
+    }
+
+    // Lataa perus pixel shader (PixelShader.hlsl)
     hr = D3DCompileFromFile(
         L"PixelShader.hlsl",
         nullptr,
@@ -275,7 +302,7 @@ void Dx11Renderer::CompileShaders()
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
         0,
         &psBlob,
-        nullptr
+        &errorBlob
     );
 
     if (FAILED(hr)) {
@@ -291,20 +318,25 @@ void Dx11Renderer::CompileShaders()
             nullptr
         );
     }
+
     if (FAILED(hr)) throw std::runtime_error("Failed to compile pixel shader");
 
-    hr = pDevice->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &pVS);
-    if (FAILED(hr)) throw std::runtime_error("Failed to create Vertex shader");
-
-    hr = pDevice->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pPS);
+    // Luo perus pixel shader
+    hr = pDevice->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pPSNoTexture);
     if (FAILED(hr)) throw std::runtime_error("Failed to create pixel shader");
+
+    pPS = pPSNoTexture;
+
+    if (textureShaderExists) {
+        
+    }
 
     D3D11_INPUT_ELEMENT_DESC ied[] = {
         {"BRIGHTNESS", 0, DXGI_FORMAT_R32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
     hr = pDevice->CreateInputLayout(
@@ -501,17 +533,26 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
     for (auto& Instptr : Drawables) {
         Instance& inst = *Instptr.get();
 
-        pContext->VSSetShader(pVS.Get(), nullptr, 0);
-        pContext->PSSetShader(pPS.Get(), nullptr, 0);
+        ID3D11PixelShader* selectedPS = pPSNoTexture.Get();
 
-        if (Texture* tex = inst.GetTexture()) {
-            #if DIRECTX11 == 1
-                pContext->PSSetShaderResources(0, 1, tex->GetTextureComPtr().GetAddressOf());
-            #endif
+        Texture* tex = inst.GetTexture();
+        bool hasTexture = tex->IsLoaded();
+
+        if (hasTexture) {
+            selectedPS = pPSTexture.Get();
+
+            ID3D11ShaderResourceView* textureSRV = tex->GetTextureComPtr().Get();
+            pContext->PSSetShaderResources(0, 1, &textureSRV);
         }
+
+        pContext->VSSetShader(pVS.Get(), nullptr, 0);
+        pContext->PSSetShader(selectedPS, nullptr, 0);
 
         pContext->PSSetSamplers(0, 1, pSampler.GetAddressOf());
 
+        MakeAProblem(selectedPS == pPSTexture.Get() ?
+            "Käytetään TEXTURE shaderia\n" :
+            "Käytetään PERUS shaderia\n");
         if (inst.CanDraw()) {
             const Mesh& mesh = inst.OBJmesh;
             FLOAT3 Orientation = inst.Orientation;
@@ -637,9 +678,6 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
             pContext->IASetInputLayout(pLayout.Get());
             pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            pContext->VSSetShader(pVS.Get(), nullptr, 0);
-            pContext->PSSetShader(pPS.Get(), nullptr, 0);
-
             pContext->VSSetConstantBuffers(0, 1, pConstantBuffer.GetAddressOf());
             pContext->PSSetConstantBuffers(0, 1, pColorBuffer.GetAddressOf());
             pContext->PSSetConstantBuffers(1, 1, pLightingBuffer.GetAddressOf());
@@ -647,22 +685,6 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
             mesh.DrawForDX11(pContext.Get());
         }
     }
-}
-
-void Dx11Renderer::DrawMesh(
-    float deltaTime,
-    Mesh& mesh,
-    FLOAT3 Orientation,
-    FLOAT3& pos,
-    FLOAT3& size,
-    INT3 color,
-    FLOAT3& Velocity,
-    bool Anchored,
-    float Roughness,
-    float Brightness
-)
-{
-
 }
 
 void Dx11Renderer::ClearSceneBuffer(float r, float g, float b)

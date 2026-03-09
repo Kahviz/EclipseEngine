@@ -3,7 +3,7 @@
 #include <DirectXMath.h>
 #include <string>
 #include "Mesh.h"
-#include "Instance.h"
+#include "Instances/Instance.h"
 
 using namespace DirectX;
 

@@ -2,10 +2,9 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <string>
-#include "Camera.h"
+#include "Camera/Camera.h"
 #include <wrl/client.h>
-#include <Instance.h>
-#include <Instances/Instances/Mesh/Mesh.h>
+#include <Instances/Instance.h>
 #include "GLOBALS.h"
 #include "Graphics/Texture/Texture.h"
 
@@ -43,8 +42,6 @@ public:
     void EndFrame();
 
     void DrawAFrame(float deltatime, std::vector<std::unique_ptr<Instance>>& Drawables);
-
-    void DrawMesh(float deltaTime, Mesh& mesh, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness);
 
     void ClearBuffer(float r, float g, float b);
     void ClearSceneBuffer(float r, float g, float b);
@@ -101,4 +98,7 @@ private:
     ComPtr<ID3D11Texture2D> pSceneTexture;
     ComPtr<ID3D11ShaderResourceView> pSceneSRV;
     ComPtr<ID3D11RenderTargetView> pSceneRTV;
+
+    ComPtr<ID3D11PixelShader> pPSTexture;
+    ComPtr<ID3D11PixelShader> pPSNoTexture;
 };

@@ -1,11 +1,10 @@
 #pragma once
-#pragma once
 
 #include <memory>
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <string>
-#include "Camera.h"
+#include "Camera/Camera.h"
 #include <wrl/client.h>
 #include "GLFW/glfw3.h"
 
@@ -16,7 +15,7 @@ class Window;
 #include "ErrorHandling/ErrorMessage.h"
 
 #include <vector>
-#include "Instance.h"
+#include "Instances/Instance.h"
 
 class Graphics
 {

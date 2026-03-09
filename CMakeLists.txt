@@ -44,6 +44,7 @@ add_definitions(
 
 #Executable
 add_executable(UntitledGameEngine
+    ${IMGUI_SOURCES}
     main.cpp
     Core/SetupPaths/MakeFiles.cpp
     Core/Camera/Camera.cpp
@@ -52,28 +53,41 @@ add_executable(UntitledGameEngine
     Core/Instances/Instances/Mesh/DX11/MeshDX11.cpp
     Core/Instances/Instances/Mesh/Vulkan/MeshVulkan.cpp
     Core/Gui/ImGuiManager.cpp
-    "Editor/Gui/MakeGui.cpp"
     Core/Misc/Colission/Colission.cpp
     Core/Misc/Controller/Controller.cpp
     Core/Misc/Timer/Timer.cpp
     Core/Variables/GLOBALS.cpp
-    Editor/Camera/CameraControl.cpp
-    Editor/Services/Raycasting.cpp
+    Core/Services/Raycasting.cpp
     Core/Runtime/Engine.cpp
     Core/Window/Window.cpp
     Core/Graphics/Dx11/Dx11Renderer.cpp
     Core/Graphics/Vulkan/VulkanRender.cpp
     Core/Graphics/Vulkan/ScoreCounter.cpp
     Core/Debugging/Profiler/Profiler.cpp
-    ${IMGUI_SOURCES}
     Core/Debugging/Functions/UGE_ASSERTS.h
     Core/Libs/ImGui/imgui_demo.cpp
-    "include/Math/M_Utils.h" "include/Math/StoreFloat.h" "include/Math/MatrixLookAtLH.h" "include/Math/TransformNormal.h" "include/Math/LoadINT.h" "include/Math/Variables.h" "Core/Graphics/Texture/Texture.h" "Core/Graphics/Texture/Texture.cpp" "include/Math/FLOAT2.h"
-)
+    Core/Graphics/Texture/Texture.h 
+    Core/Graphics/Texture/Texture.cpp 
+
+    #Editor
+    Editor/Gui/MakeGui.cpp
+    Editor/Camera/CameraControl.cpp
+
+    #Math
+    include/Math/M_Utils.h
+    include/Math/StoreFloat.h
+    include/Math/MatrixLookAtLH.h
+    include/Math/TransformNormal.h
+    include/Math/LoadINT.h
+    include/Math/Variables.h 
+    include/Math/FLOAT2.h
+ "UntilitedGameEngine.h" "Core/Multiplatform/UntilitedPlatform.h")
 
 target_include_directories(UntitledGameEngine PRIVATE
     include
     Core
+    Editor/
+    ../Editor/
     Core/Libs/Assimp/include
     Core/Libs/SDL3
     Core/Libs/ImGui
@@ -81,6 +95,8 @@ target_include_directories(UntitledGameEngine PRIVATE
     Core/Instances/Instances/
     Core/Debugging/Functions/
     Core/Graphics/Texture/
+    Editor/Camera/
+    Core/Services/
     ${Vulkan_INCLUDE_DIRS}
 )
 
@@ -92,11 +108,9 @@ target_link_libraries(UntitledGameEngine PRIVATE
 )
 
 if(WIN32)
-    target_link_libraries(UntitledGameEngine PRIVATE gdi32 opengl32)
     target_link_options(UntitledGameEngine PRIVATE "/SUBSYSTEM:CONSOLE")
 endif()
 
-# ---------------- Post-build DLL copy ----------------
 if(WIN32)
     set(DLLS
         ${CMAKE_SOURCE_DIR}/Libs/assimp-vc143-mt.dll
@@ -112,10 +126,10 @@ if(WIN32)
     endforeach()
 endif()
 
-# ---------------- Shader files copy ----------------
 set(SHADER_FILES
     ${CMAKE_SOURCE_DIR}/Core/Shaders/VertexShader.hlsl
     ${CMAKE_SOURCE_DIR}/Core/Shaders/PixelShader.hlsl
+    ${CMAKE_SOURCE_DIR}/Core/Shaders/PixelShaderTexture.hlsl
 )
 
 foreach(shader ${SHADER_FILES})
@@ -126,7 +140,6 @@ foreach(shader ${SHADER_FILES})
     )
 endforeach()
 
-# ---------------- Compile HLSL shaders ----------------
 if(WIN32)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/VertexShader.cso
@@ -143,9 +156,16 @@ if(WIN32)
         DEPENDS "${CMAKE_SOURCE_DIR}/Core/Shaders/PixelShader.hlsl"
         COMMENT "Compiling Pixel Shader"
     )
+
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/PixelShaderTexture.cso
+        COMMAND fxc.exe /T ps_5_0 /E main /Fo "${CMAKE_CURRENT_BINARY_DIR}/PixelShaderTexture.cso"
+                "${CMAKE_SOURCE_DIR}/Core/Shaders/PixelShaderTexture.hlsl"
+        DEPENDS "${CMAKE_SOURCE_DIR}/Core/Shaders/PixelShaderTexture.hlsl"
+        COMMENT "Compiling PixelTexture Shader"
+    )
 endif()
 
-# ---------------- MSVC tweaks ----------------
 if(MSVC)
     set(CMAKE_VS_NO_COMPILE_BATCHING ON)
 endif()

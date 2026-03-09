@@ -1,9 +1,9 @@
 #include "Colission.h"
-#include "Instance.h"
 #include <vector>
 #include <cmath>
 #include "GLOBALS.h"
 #include "Instances/Vertex.h"
+#include "Instances/Instance.h"
 
 namespace {
 

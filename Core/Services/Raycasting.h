@@ -1,5 +1,6 @@
 #pragma once
 #include "Math/UntilitedMath.h"
+#include "Instances/Instance.h"
 
 class Instance;
 

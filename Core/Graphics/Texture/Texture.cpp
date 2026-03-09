@@ -5,7 +5,7 @@
 #include <d3d11.h>
 #include <vector>
 #include "Graphics/Dx11/Dx11Renderer.h"
-
+//VULKAN WHERE ARE YOU
 #if DIRECTX11
 ID3D11ShaderResourceView* Texture::Load(std::string path, Dx11Renderer& dx11Renderer)
 {
@@ -184,6 +184,7 @@ ID3D11ShaderResourceView* Texture::Load(std::string path, Dx11Renderer& dx11Rend
     decoder->Release();
     factory->Release();
 
+    Loaded = true;
     return srv;
 }
 #endif

@@ -64,8 +64,6 @@ void Graphics::RenderAMesh(
     #endif
 
     #if DIRECTX11 == 1
-        Instance inst = *drawable;
-        DR.get()->DrawMesh(Deltatime, inst.OBJmesh, Orientation, pos, size, color, Velocity, Anchored, Roughness, Brightness);
     #endif
 }
 void Graphics::SetRenderTargetToBackBuffer() {

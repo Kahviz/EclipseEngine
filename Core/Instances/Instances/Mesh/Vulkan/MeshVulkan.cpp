@@ -5,7 +5,7 @@
 #include <assimp/postprocess.h>
 #include <stdexcept>
 #include "Vulkan/VulkanHelpers.h"
-#include <Instance.h>
+#include "Instances/Instance.h"
 
 void MeshVK::Load(
     const std::string& file,
