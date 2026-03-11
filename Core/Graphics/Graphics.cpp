@@ -30,7 +30,8 @@ bool Graphics::InitGraphics(GLFWwindow* window)
         DR.get()->InitDx11Renderer(hwnd);
 
         return true;
-    #else
+    #endif
+    #if VULKAN == 1
         MakeASuccess("Inited Vulkan Graphics!");
         VR = std::make_unique<VulkanRender>();
         return VR.get()->Init(window);

@@ -7,11 +7,15 @@
 #include "Camera/Camera.h"
 #include <wrl/client.h>
 #include "GLFW/glfw3.h"
-
+#include "GLOBALS.h"
 class Window;
 
-#include "Dx11/Dx11Renderer.h"
-#include "Vulkan/VulkanRender.h"
+#if DIRECTX11 == 1
+    #include "Dx11/Dx11Renderer.h"
+#endif
+#if VULKAN == 1
+    #include "Vulkan/VulkanRender.h"
+#endif
 #include "ErrorHandling/ErrorMessage.h"
 
 #include <vector>
@@ -82,9 +86,13 @@ public:
         return this->VR.get()->GetGraphicsQueue();
     }
 #endif
-
+#if VULKAN == 1
     std::unique_ptr<VulkanRender> VR;
+#endif
+
+#if DIRECTX11 == 1
     std::unique_ptr<Dx11Renderer> DR;
+#endif
 private:
 
 };

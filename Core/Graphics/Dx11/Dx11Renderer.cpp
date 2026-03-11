@@ -1,3 +1,4 @@
+#if DIRECTX11 == 1
 #include "Dx11Renderer.h"
 #include "Releaser.h"
 #include <d3dcompiler.h>
@@ -328,7 +329,7 @@ void Dx11Renderer::CompileShaders()
     pPS = pPSNoTexture;
 
     if (textureShaderExists) {
-        
+
     }
 
     D3D11_INPUT_ELEMENT_DESC ied[] = {
@@ -560,7 +561,7 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
             bool Anchored = inst.Anchored;
             float Roughness = 1.0f;
             float Brightness = 1.0f;
-            
+
             std::string UGE_ASSERT_DX11 = "Dx11Renderer not properly initialized";
             UGE_ASSERT(pContext, UGE_ASSERT_DX11);
             UGE_ASSERT(pConstantBuffer, UGE_ASSERT_DX11);
@@ -678,3 +679,4 @@ void Dx11Renderer::ClearBuffer(float r, float g, float b)
     pContext->ClearRenderTargetView(pTarget.Get(), color);
     pContext->ClearDepthStencilView(pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
+#endif
