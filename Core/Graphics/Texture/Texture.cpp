@@ -141,9 +141,6 @@ bool Texture::LoadVK(const std::string& path, VulkanRender& vulkanrenderer)
     samplerInfo.compareEnable = VK_FALSE;
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 1.0f;
 
     if (vkCreateSampler(device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
         MakeAError("Failed to create sampler!");
@@ -151,6 +148,7 @@ bool Texture::LoadVK(const std::string& path, VulkanRender& vulkanrenderer)
         return false;
     }
 
+    Loaded = true;
     std::cout << "Texture loaded successfully!" << std::endl;
     return true;
 }

@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include "Vulkan/VulkanHelpers.h"
 #include "Instances/Instance.h"
+#include "ErrorHandling/ErrorMessage.h"
 
 void MeshVK::Load(
     const std::string& file,
@@ -39,6 +40,8 @@ void MeshVK::Load(
     verts.resize(m->mNumVertices);
     for (uint32_t i = 0; i < m->mNumVertices; ++i)
     {
+        verts[i].brightness = 1.0f;
+
         verts[i].pos = {
             m->mVertices[i].x,
             m->mVertices[i].y,
@@ -52,8 +55,18 @@ void MeshVK::Load(
         };
 
         verts[i].color = { 1, 1, 1 };
-        verts[i].brightness = 1.0f;
-        verts[i].uv = { 0,0 };
+        if (m->HasTextureCoords(0))
+        {
+            verts[i].uv = {
+                m->mTextureCoords[0][i].x,
+                m->mTextureCoords[0][i].y
+            };
+        }
+        else
+        {
+            MakeAError("No uv");
+            verts[i].uv = { 0.0f, 0.0f };
+        }
     }
 
     indices.reserve(m->mNumFaces * 3);

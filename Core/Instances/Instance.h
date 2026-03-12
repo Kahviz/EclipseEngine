@@ -78,6 +78,7 @@ public:
     }
 
     virtual Texture* GetTexture() { return nullptr; }
+    virtual const Texture* GetConstTexture() const { return nullptr; }
     virtual bool CanDraw() const { return false; }
     virtual bool HasTexture() const { return false; }
     virtual bool HaveColor() const { return false; }

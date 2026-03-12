@@ -57,6 +57,9 @@ public:
     void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, uint32_t width, uint32_t height);
     void Cleanup(VkDevice device);
 #endif
+    bool IsLoadedConst() const {
+        return Loaded;
+    }
     bool IsLoaded() {
         return Loaded;
     }

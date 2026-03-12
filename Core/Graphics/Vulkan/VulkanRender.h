@@ -19,6 +19,8 @@
 #include <minmax.h>
 #include <algorithm>
 
+class Texture;
+
 class VulkanRender {
 public:
     VulkanRender() = default;
@@ -36,9 +38,9 @@ public:
     void CreateSwapchain();
     void createUniformBuffers();
     void createDescriptorPool();
-    void createDescriptorSets();
+    void createDescriptorSets(const Instance* inst = nullptr);
     Matrix4x4 CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar);
-    void updateUniformBuffer(uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos, INT3 color);
+    void updateUniformBuffer(const Instance& inst, uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos, INT3 color);
     bool RenderAMesh(const Instance* drawable, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
 
     void DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables);
@@ -64,7 +66,7 @@ public:
 private:
     Camera m_Camera;
     ScoreCounter m_SC;
-
+    Texture* defaultTexture;
     struct DrawCommand {
         const MeshVK* mesh;
         uint32_t objectIndex;

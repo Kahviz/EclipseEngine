@@ -13,6 +13,7 @@
 #include <CameraControl.h>
 #include "imgui.h"
 #include <imgui_impl_vulkan.h>
+#include "Texture.h"
 
 std::vector<Vertex> vertices = {
     {1.0f, {-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
@@ -551,7 +552,6 @@ bool VulkanRender::Init(GLFWwindow* window)
 
     MakeASuccess("Synchronization objects created");
 
-    // Luo komentapuskurit
     commandBuffers.resize(swapchainFramebuffers.size());
 
     VkCommandPoolCreateInfo poolInfo{};
@@ -626,32 +626,43 @@ bool VulkanRender::Init(GLFWwindow* window)
         throw std::runtime_error("Failed to create ImGui descriptor pool");
     }
 
+    std::string fullPath = assets + "\\Textures\\TestTexture.png";
+    defaultTexture = new Texture();
+    defaultTexture->LoadVK(fullPath, *this);
+
     createUniformBuffers();
     createDescriptorPool();
-    createDescriptorSets();
+    createDescriptorSets(nullptr);
+
 
     MakeASuccess("No Fatal Errors in Vulkan Initing :D");
     return true;
 }
 
 void VulkanRender::createDescriptorSetLayout() {
-    VkDescriptorSetLayoutBinding uboLayoutBinding{};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType =
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    std::array<VkDescriptorSetLayoutBinding, 2> bindings{};
+
+    // Binding 0: Uniform buffer
+    bindings[0].binding = 0;
+    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    bindings[0].descriptorCount = 1;
+    bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    // Binding 1: Texture sampler
+    bindings[1].binding = 1;
+    bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    bindings[1].descriptorCount = 1;
+    bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
 
     if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor set layout!");
+        throw std::runtime_error("Failed to create descriptor set layout!");
     }
 }
-
 void VulkanRender::Cleanup()
 {
     if (device != VK_NULL_HANDLE) {
@@ -990,14 +1001,18 @@ void VulkanRender::createUniformBuffers() {
 }
 
 void VulkanRender::createDescriptorPool() {
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    poolSize.descriptorCount = 1;
+    std::array<VkDescriptorPoolSize, 2> poolSizes{};
+
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    poolSizes[0].descriptorCount = 1;
+
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[1].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = 1;
 
     if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
@@ -1005,7 +1020,9 @@ void VulkanRender::createDescriptorPool() {
     }
 }
 
-void VulkanRender::createDescriptorSets() {
+void VulkanRender::createDescriptorSets(const Instance* inst) {
+    const Texture* texture = (inst != nullptr) ? inst->GetConstTexture() : nullptr;
+
     VkDescriptorSetLayout layouts[] = { descriptorSetLayout };
 
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -1021,24 +1038,46 @@ void VulkanRender::createDescriptorSets() {
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformBuffer;
     bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-    bufferInfo.range = dynamicAlignment;
+    bufferInfo.range = dynamicAlignment; 
 
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType =
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    VkDescriptorImageInfo imageInfo{};
+    if (texture != nullptr && texture->IsLoadedConst()) {
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = texture->GetImageView();
+        imageInfo.sampler = texture->GetSampler();
+    }
+    else {
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = defaultTexture->GetImageView();
+        imageInfo.sampler = defaultTexture->GetSampler();
+    }
 
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-    descriptorWrite.pImageInfo = nullptr;
-    descriptorWrite.pTexelBufferView = nullptr;
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = descriptorSet;
+    descriptorWrites[0].dstBinding = 0;
+    descriptorWrites[0].dstArrayElement = 0;
+    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pBufferInfo = &bufferInfo;
+    descriptorWrites[0].pImageInfo = nullptr;
+    descriptorWrites[0].pTexelBufferView = nullptr;
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = descriptorSet;
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].dstArrayElement = 0;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pImageInfo = &imageInfo;
+    descriptorWrites[1].pBufferInfo = nullptr;
+    descriptorWrites[1].pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(device,
+        static_cast<uint32_t>(descriptorWrites.size()),
+        descriptorWrites.data(),
+        0, nullptr);
 }
 
 Matrix4x4 VulkanRender::CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar) {
@@ -1055,6 +1094,7 @@ Matrix4x4 VulkanRender::CreateVulkanPerspective(float fovY, float aspect, float 
 }
 
 void VulkanRender::updateUniformBuffer(
+    const Instance& inst,
     uint32_t objectIndex,
     FLOAT3 scale,
     FLOAT3 Orientation,
@@ -1062,10 +1102,6 @@ void VulkanRender::updateUniformBuffer(
     INT3 color
 )
 {
-    static auto startTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
     UniformBufferObject ubo{};
 
     float angle = Orientation.y;
@@ -1073,12 +1109,11 @@ void VulkanRender::updateUniformBuffer(
     float sinA = sinf(angle);
 
     ubo.model.x = { cosA * scale.x, 0.0f, -sinA * scale.x, 0.0f };
-
     ubo.model.y = { 0.0f, scale.y, 0.0f, 0.0f };
-
     ubo.model.z = { sinA * scale.z, 0.0f, cosA * scale.z, 0.0f };
-
     ubo.model.w = { pos.x, pos.y, pos.z, 1.0f };
+    
+    // Väri
 
     ubo.color = Vector3(
         color.x / 255.0f,
@@ -1086,19 +1121,22 @@ void VulkanRender::updateUniformBuffer(
         color.z / 255.0f
     );
 
-    Matrix4x4 view = m_Camera.GetViewMatrix();
+    const Texture* tex = inst.GetConstTexture();
 
-    ubo.view = view;
+    if (tex != nullptr && tex->IsLoadedConst()) {
+        ubo.UsesTexture = 1.0f;
+    }
+    else {
+        ubo.UsesTexture = 0.0f;
+    }
+
+    ubo.view = m_Camera.GetViewMatrix();
 
     float fovY = 45.0f * PI / 180.0f;
     float aspect = (float)screen_width / (float)screen_height;
-
     ubo.proj = CreateVulkanPerspective(fovY, aspect, 0.1f, zFar);
 
-    uint8_t* dst =
-        (uint8_t*)uniformBufferMapped +
-        objectIndex * dynamicAlignment;
-
+    uint8_t* dst = (uint8_t*)uniformBufferMapped + objectIndex * dynamicAlignment;
     memcpy(dst, &ubo, sizeof(ubo));
 }
 
@@ -1123,7 +1161,7 @@ bool VulkanRender::RenderAMesh(
 
     const MeshVK* meshVK = &drawable->OBJmesh.VM;
 
-    updateUniformBuffer(Index, size, Orientation, pos, color);
+    updateUniformBuffer(*drawable ,Index, size, Orientation, pos, color);
 
     DrawCommand cmd;
     cmd.mesh = meshVK;

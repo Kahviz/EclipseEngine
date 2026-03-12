@@ -67,6 +67,10 @@ public:
         return &texture;
     }
 
+    const Texture* GetConstTexture() const { 
+        return &texture; 
+    }
+
     bool CanDraw() const override { return true; }
     bool HaveColor() const override { return true; }
     bool HaveSize() const override { return true; }

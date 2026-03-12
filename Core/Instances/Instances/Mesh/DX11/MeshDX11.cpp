@@ -23,11 +23,11 @@ void MeshDX11::Load(const std::string& file, ID3D11Device* device)
     if (!m->HasNormals())
         throw std::runtime_error("Mesh has no normals");
 
-    // --- Vertices ---
+    //Vertices
     verts.resize(m->mNumVertices);
     for (UINT i = 0; i < m->mNumVertices; ++i)
     {
-        verts[i].brightness = 1.0f;  // brightness ensin!
+        verts[i].brightness = 1.0f;
 
         verts[i].pos = {
             m->mVertices[i].x,
