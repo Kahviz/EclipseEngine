@@ -12,32 +12,28 @@
 class Mesh
 {
 public:
+#if DIRECTX11 == 1
     void Load(const std::string& file, ID3D11Device* device) {
-        #if DIRECTX11 == 1
-                DM.Load(file, device);
-        #endif
+        DM.Load(file, device);
     }
-
-    void Load(const std::string& file, VkDevice device, VkPhysicalDevice phyDevice, VkCommandPool cmdPool, VkQueue gfxQueue) {
-        #if VULKAN == 1
-                VM.Load(file, device, phyDevice, cmdPool, gfxQueue);
-        #endif
-    }
-
     void DrawForDX11(ID3D11DeviceContext* ctx) const {
-        #if DIRECTX11 == 1
-            DM.Draw(ctx);
-        #endif
+        DM.Draw(ctx);
     };
+#endif
+    
+#if VULKAN == 1
+    void Load(const std::string& file, VkDevice device, VkPhysicalDevice phyDevice, VkCommandPool cmdPool, VkQueue gfxQueue) {
+        VM.Load(file, device, phyDevice, cmdPool, gfxQueue);
+    }
 
     void DrawForVulkan(VkCommandBuffer cb)
     {
-       #if VULKAN == 1
-            VM.Draw(cb);
-       #endif
-
+        VM.Draw(cb);
     }
 
+#endif
+
+    
     /*
     const std::string& file,
         VkDevice device,
