@@ -10,7 +10,7 @@ class Texture;
 class Instance {
 public:
     Mesh OBJmesh;
-    FLOAT3 Velocity;
+    Vector3 Velocity;
 
     bool Anchored = true;
 
@@ -20,17 +20,17 @@ public:
     std::string Name;
     char NameText[64] = "Instance";
 
-    FLOAT3 pos = { 0.0f, 0.0f, 0.0f };
+    Vector3 pos = { 0.0f, 0.0f, 0.0f };
     char PosText[128] = "0,0,0";
 
     //Color
     INT3 color = { 0,0,0 };
     INT3 originalColor = { 0,0,0 };
 
-    FLOAT3 Size = { 1.0f, 1.0f, 1.0f };
+    Vector3 Size = { 1.0f, 1.0f, 1.0f };
     char SizeText[128] = "1,1,1";
 
-    FLOAT3 Orientation = { 0.0f,0.0f,0.0f };
+    Vector3 Orientation = { 0.0f,0.0f,0.0f };
     char OrientationText[128] = "0,0,0";
 
     int UniqueID = 0;
@@ -43,12 +43,12 @@ public:
 
     Instance(
         const std::string& name = "Instance",
-        const FLOAT3& position = { 0, 0, 0 },
-        const FLOAT3& SIZE = { 0, 0, 0 },
+        const Vector3& position = { 0, 0, 0 },
+        const Vector3& SIZE = { 0, 0, 0 },
         const INT3& COLOR = { 0, 0, 0 },
         const INT3& OGCOLOR = { 0, 0, 0 },
-        const FLOAT3& ORIENTATION = { 0, 0, 0 },
-        const FLOAT3& VELOCITY = { 0, 0, 0 },
+        const Vector3& ORIENTATION = { 0, 0, 0 },
+        const Vector3& VELOCITY = { 0, 0, 0 },
         const Mesh& MESH = Mesh(),
         int uniqueID = 0,
         int instanceID = 0,

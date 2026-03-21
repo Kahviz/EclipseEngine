@@ -5,7 +5,7 @@
 #include "Camera/Camera.h"
 #include "GLFW/glfw3.h"
 #include "GLOBALS.h"
-
+#include "Math/UntilitedMath.h"
 class Window;
 
 #if DIRECTX11 == 1
@@ -33,7 +33,7 @@ public:
 
     bool InitGraphics(GLFWwindow* window);
     void SetRenderTargetToScene();
-    void RenderAMesh(float Deltatime, const Instance* drawable, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
+    void RenderAMesh(float Deltatime, const Instance* drawable, Vector3 Orientation, Vector3& pos, Vector3& size, INT3 color, Vector3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
     void SetRenderTargetToBackBuffer();
 
     Camera& GetCamera();

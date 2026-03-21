@@ -99,7 +99,7 @@ add_executable(UntitledGameEngine
     include/Math/TransformNormal.h
     include/Math/LoadINT.h
     include/Math/Variables.h 
-    include/Math/FLOAT2.h
+    "include/Math/Vector2.h"
 
     UntilitedGameEngine.h
  "Core/Graphics/Vulkan/VulkanBuilderInit.h" "Core/Graphics/Vulkan/VulkanBuilderInit.cpp")

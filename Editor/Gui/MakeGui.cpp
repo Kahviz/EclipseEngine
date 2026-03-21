@@ -50,7 +50,7 @@ void MakeChildrenNodes(Instance* inst) {
     }
 }
 
-FLOAT3 MakeVec3TextEdit(Instance* inst,
+Vector3 MakeVec3TextEdit(Instance* inst,
     const std::string& name,
     const std::string& VecType)
 {
@@ -89,7 +89,7 @@ void MakeGui::MakeStyle() {
     style.GrabRounding = GrabRounding;
 }
 
-void MakeFloat3Edit(const char* Name, FLOAT3& vec) {
+void MakeFloat3Edit(const char* Name, Vector3& vec) {
     char label[128];
     static int Times = 0;
     Times += 1;
@@ -109,7 +109,20 @@ void MakeFloat3Edit(const char* Name, FLOAT3& vec) {
 }
 
 
-void MakeGui::MakeIMGui(Window& wnd, std::vector<std::unique_ptr<Instance>>& Drawables, std::function<Instance* (const std::string&, const std::string&, FLOAT3, FLOAT3, bool)> AddAMesh, float* Color3, bool Selec)
+void MakeGui::MakeIMGui(Window& wnd,
+    std::vector<std::unique_ptr<Instance>>& Drawables,
+    std::function<Instance*
+    (
+        const std::string&,
+        const std::string&,
+        Vector3,
+        Vector3,
+        bool
+        )>
+    AddAMesh,
+    float* Color3,
+    bool Selec
+)
 { 
     MakeStyle();
     

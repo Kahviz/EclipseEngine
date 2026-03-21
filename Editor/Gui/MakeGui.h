@@ -18,7 +18,7 @@ public:
         std::vector<std::unique_ptr<Instance>>& Drawables,
         std::function<Instance* (const std::string&,
             const std::string&,
-            FLOAT3, FLOAT3, 
+            Vector3, Vector3,
             bool)> AddAMesh,
         float* Color3,
         bool Selec

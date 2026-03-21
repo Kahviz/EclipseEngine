@@ -155,7 +155,7 @@ int Engine::EngineRun()
 }
 
 Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
-    FLOAT3 pos, FLOAT3 Size, bool Selec)
+    Vector3 pos, Vector3 Size, bool Selec)
 {
     auto obj = std::make_unique<Object>(
         Name,
@@ -297,7 +297,7 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
                 *wnd,
                 Drawables,
                 [this](const std::string& path, const std::string& name,
-                    FLOAT3 pos, FLOAT3 size, bool Selec) -> Instance*
+                    Vector3 pos, Vector3 size, bool Selec) -> Instance*
                 {
                     return &AddAMesh(path, name, pos, size, Selec);
                 },

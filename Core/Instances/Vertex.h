@@ -6,17 +6,17 @@
 struct Vertex
 {
     float brightness;  // offset 0
-    FLOAT3 pos;        // offset 4
-    FLOAT3 color;      // offset 16
-    FLOAT3 normal;     // offset 28
-    FLOAT2 uv;
+    Vector3 pos;        // offset 4
+    Vector3 color;      // offset 16
+    Vector3 normal;     // offset 28
+    Vector2 uv;
     Vertex() = default;
 
-    Vertex(float b, const FLOAT3& p, const FLOAT3& c, const FLOAT3& n)
+    Vertex(float b, const Vector3& p, const Vector3& c, const Vector3& n)
         : brightness(b), pos(p), color(c), normal(n) {
     }
 
-    Vertex(float b, FLOAT3&& p, FLOAT3&& c, FLOAT3&& n)
+    Vertex(float b, Vector3& p, Vector3&& c, Vector3&& n)
         : brightness(b), pos(std::move(p)), color(std::move(c)), normal(std::move(n)) {
     }
 

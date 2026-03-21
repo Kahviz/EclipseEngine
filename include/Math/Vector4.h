@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-#include "FLOAT3.h"
-#include "INT3.h"
 
 struct Vector4
 {
@@ -43,14 +41,6 @@ inline float dot(const Vector4& a, const Vector4& b)
 	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline Vector4 LoadFloat3(FLOAT3 a) {
-	return Vector4(
-		a.x,
-		a.y,
-		a.z,
-		0.0f
-	);
-}
 
 inline Vector4 VectorSet(float x, float y, float z, float w) {
 	return Vector4(x, y, z, w);

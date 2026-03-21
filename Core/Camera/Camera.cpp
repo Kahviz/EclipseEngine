@@ -3,9 +3,9 @@
 
 Camera::Camera()
 {
-    this->pos = FLOAT3(0.0f, 0.0f, 0.0f);
+    this->pos = Vector3(0.0f, 0.0f, 0.0f);
     this->posVector = LoadFloat3(this->pos);
-    this->rot = FLOAT3(0.0f, 0.0f, 0.0f);
+    this->rot = Vector3(0.0f, 0.0f, 0.0f);
     this->rotVector = LoadFloat3(this->rot);
     this->UpdateViewMatrix();
 }
@@ -21,9 +21,9 @@ const Matrix4x4& Camera::GetViewMatrix() const {
 }
 const Matrix4x4& Camera::GetProjectionMatrix() const { return this->projectionMatrix; }
 const Vector4& Camera::GetPositionVector() const { return this->posVector; }
-const FLOAT3& Camera::GetPositionFloat3() const { return this->pos; }
+const Vector3& Camera::GetPositionVector3() const { return this->pos; }
 const Vector4& Camera::GetRotationVector() const { return this->rotVector; }
-const FLOAT3& Camera::GetRotationFloat3() const { return this->rot; }
+const Vector3& Camera::GetRotationVector3() const { return this->rot; }
 
 void Camera::SetPosition(const Vector4& pos)
 {
@@ -34,14 +34,13 @@ void Camera::SetPosition(const Vector4& pos)
 
 void Camera::SetPosition(float x, float y, float z)
 {
-    this->pos = FLOAT3(x, y, z);
+    this->pos = Vector3(x, y, z);
     this->posVector = LoadFloat3(this->pos);
     this->UpdateViewMatrix();
 }
 
 void Camera::AdjustPosition(const Vector4& pos)
 {
-    // komponenttikohtainen lisäys
     this->posVector.x += pos.x;
     this->posVector.y += pos.y;
     this->posVector.z += pos.z;
@@ -67,7 +66,7 @@ void Camera::SetRotation(const Vector4& rot)
 
 void Camera::SetRotation(float x, float y, float z)
 {
-    this->rot = FLOAT3(x, y, z);
+    this->rot = Vector3(x, y, z);
     this->rotVector = LoadFloat3(this->rot);
     this->UpdateViewMatrix();
 }
@@ -90,29 +89,28 @@ void Camera::AdjustRotation(float x, float y, float z)
     this->UpdateViewMatrix();
 }
 
-FLOAT3 Camera::GetForward() const
+Vector3 Camera::GetForward() const
 {
     Matrix4x4 rotMatrix = MatrixRotationRollPitchYaw(rot.x, rot.y, rot.z);
 
-    // Muunna Vector4 -> Vector3 ennen transformia
     Vector3 forward3 = { DEFAULT_FORWARD_VECTOR.x, DEFAULT_FORWARD_VECTOR.y, DEFAULT_FORWARD_VECTOR.z };
     Vector3 transformed = Vector3TransformCoord(forward3, rotMatrix);
 
-    FLOAT3 f;
+    Vector3 f;
     f.x = transformed.x;
     f.y = transformed.y;
     f.z = transformed.z;
     return f;
 }
 
-FLOAT3 Camera::GetRight() const
+Vector3 Camera::GetRight() const
 {
     Matrix4x4 rotMatrix = MatrixRotationRollPitchYaw(rot.x, rot.y, rot.z);
 
     Vector3 right3 = { DEFAULT_RIGHT_VECTOR.x, DEFAULT_RIGHT_VECTOR.y, DEFAULT_RIGHT_VECTOR.z };
     Vector3 transformed = Vector3TransformCoord(right3, rotMatrix);
 
-    FLOAT3 r;
+    Vector3 r;
     r.x = transformed.x;
     r.y = transformed.y;
     r.z = transformed.z;

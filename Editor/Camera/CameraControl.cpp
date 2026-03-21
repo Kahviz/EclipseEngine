@@ -12,8 +12,8 @@ void CameraControl::MakeCameraControls(Window& wnd, float deltaTime)
     float sensitivity = 0.002f;
 
     Camera& Cam = wnd.GetGraphics().GetCamera();
-    FLOAT3 forward = Cam.GetForward();
-    FLOAT3 right = Cam.GetRight();
+    Vector3 forward = Cam.GetForward();
+    Vector3 right = Cam.GetRight();
 
     GLFWwindow* glfwWND = wnd.GetWindow();
 

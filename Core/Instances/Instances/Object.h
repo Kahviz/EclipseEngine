@@ -13,7 +13,7 @@
 
 using namespace DirectX;
 
-inline Vector3 LoadWorldVertex(const Vertex& v, const FLOAT3& objPos, const FLOAT3& objSize) {
+inline Vector3 LoadWorldVertex(const Vertex& v, const Vector3& objPos, const Vector3& objSize) {
     return Vector3(
         v.pos.x * objSize.x + objPos.x,
         v.pos.y * objSize.y + objPos.y,
@@ -32,12 +32,12 @@ public:
     Object(
         const std::string& name = "",
         int instanceID = 1,
-        const FLOAT3& position = { 0.0f,0.0f,0.0f },
-        const FLOAT3& Size = { 1.0f,1.0f,1.0f },
+        const Vector3& position = { 0.0f,0.0f,0.0f },
+        const Vector3& Size = { 1.0f,1.0f,1.0f },
         const INT3& col = { 168, 160, 160 },
         const INT3& ogcolor = { 168, 160, 160 },
-        const FLOAT3& VELOCITY = { 0.0f,0.0f,0.0f },
-        const FLOAT3& ORIENTATION = { 0.0f,0.0f,0.0f },
+        const Vector3& VELOCITY = { 0.0f,0.0f,0.0f },
+        const Vector3& ORIENTATION = { 0.0f,0.0f,0.0f },
         const bool Anchored = true,
         Mesh OBJmesh = Mesh()
     )
@@ -87,8 +87,8 @@ public:
         auto& Vertices = OBJmesh.GetVertices();
         auto& Indices = OBJmesh.GetIndices();
 
-        const FLOAT3& objPos = this->pos;
-        const FLOAT3& objSize = this->Size;
+        const Vector3& objPos = this->pos;
+        const Vector3& objSize = this->Size;
 
         for (size_t i = 0; i < Indices.size(); i += 3) {
             Vector3 v0 = LoadWorldVertex(Vertices[Indices[i]], objPos, objSize);

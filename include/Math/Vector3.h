@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "Matrix4x4.h"
-#include "FLOAT3.h"
 
 struct Vector3
 {
@@ -76,8 +75,4 @@ inline Vector3 Vector3TransformCoord(const Vector3& v, const Matrix4x4& m) {
 
 inline Vector3 VectorSet(float x, float y, float z) {
 	return Vector3(x, y, z);
-}
-
-inline Vector3 LoadFloat3Vec3(FLOAT3 a) {
-	return Vector3(a.x, a.y, a.z);
 }

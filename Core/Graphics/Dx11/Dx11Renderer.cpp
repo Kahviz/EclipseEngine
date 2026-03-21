@@ -20,9 +20,9 @@ using Microsoft::WRL::ComPtr;
 
 struct LightingCB
 {
-    FLOAT3 lightpos;     // 12
+    Vector3 lightpos;     // 12
     float Brightness;      // 4
-    FLOAT3 WorldPos;     // 12
+    Vector3 WorldPos;     // 12
     float lightRange;      // 4
 };
 
@@ -748,9 +748,9 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
 
         if (inst.CanDraw()) {
             const Mesh& mesh = inst.OBJmesh;
-            FLOAT3 Orientation = inst.Orientation;
-            FLOAT3& pos = inst.pos;
-            FLOAT3& size = inst.Size;
+            Vector3 Orientation = inst.Orientation;
+            Vector3& pos = inst.pos;
+            Vector3& size = inst.Size;
             INT3 color = inst.color;
             float Brightness = 1.0f;
 
@@ -820,9 +820,9 @@ void Dx11Renderer::DrawAFrame(float deltatime, std::vector<std::unique_ptr<Insta
             lightpos.y = 5.0f;
 
             LightingCB lcb = {};
-            lcb.lightpos = FLOAT3(lightpos.x, lightpos.y, lightpos.z);
+            lcb.lightpos = Vector3(lightpos.x, lightpos.y, lightpos.z);
             lcb.Brightness = Brightness;
-            lcb.WorldPos = FLOAT3(pos.x, pos.y, pos.z);
+            lcb.WorldPos = Vector3(pos.x, pos.y, pos.z);
             lcb.lightRange = 20.0f;
 
             D3D11_MAPPED_SUBRESOURCE msrLighting;

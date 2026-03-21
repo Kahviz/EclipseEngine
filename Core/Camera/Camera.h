@@ -11,9 +11,9 @@ public:
     const Matrix4x4& GetProjectionMatrix() const;
 
     const Vector4& GetPositionVector() const;
-    const FLOAT3& GetPositionFloat3() const;
+    const Vector3& GetPositionVector3() const;
     const Vector4& GetRotationVector() const;
-    const FLOAT3& GetRotationFloat3() const;
+    const Vector3& GetRotationVector3() const;
 
     void SetPosition(const Vector4& pos);
     void SetPosition(float x, float y, float z);
@@ -24,16 +24,16 @@ public:
     void AdjustRotation(const Vector4& rot);
     void AdjustRotation(float x, float y, float z);
 
-    FLOAT3 GetForward() const;
-    FLOAT3 GetRight() const;
+    Vector3 GetForward() const;
+    Vector3 GetRight() const;
 
 private:
     void UpdateViewMatrix();
 
     Vector4 posVector;
     Vector4 rotVector;
-    FLOAT3 pos;
-    FLOAT3 rot;
+    Vector3 pos;
+    Vector3 rot;
     Matrix4x4 viewMatrix;
     Matrix4x4 projectionMatrix;
 
