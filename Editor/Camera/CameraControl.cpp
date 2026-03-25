@@ -24,7 +24,7 @@ void CameraControl::MakeCameraControls(Window& wnd, float deltaTime)
 
     if (glfwGetKey(glfwWND, GLFW_KEY_A) == GLFW_PRESS)
         Cam.AdjustPosition(-right.x() * speed, -right.y() * speed, -right.z() * speed);
-
+    
     if (glfwGetKey(glfwWND, GLFW_KEY_D) == GLFW_PRESS)
         Cam.AdjustPosition(right.x() * speed, right.y() * speed, right.z() * speed);
 
@@ -62,7 +62,7 @@ void CameraControl::MakeCameraControls(Window& wnd, float deltaTime)
 
     if (glfwGetMouseButton(glfwWND, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
     {
-        Cam.AdjustRotation(deltaY * sensitivity, deltaX * sensitivity, 0.0f);
+        Cam.AdjustRotation(-deltaY * sensitivity, deltaX * sensitivity, 0.0f);
     }
 
 }

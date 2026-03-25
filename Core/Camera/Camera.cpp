@@ -16,7 +16,7 @@ void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float near
     this->projectionMatrix = Matrix4x4PerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ);
 }
 
-const Matrix4x4& Camera::GetViewMatrix() const { 
+const Matrix4x4& Camera::GetViewMatrix() const {
     return this->viewMatrix;
 }
 const Matrix4x4& Camera::GetProjectionMatrix() const { return this->projectionMatrix; }
@@ -50,9 +50,10 @@ void Camera::AdjustPosition(const Vector4& pos)
 
 void Camera::AdjustPosition(float x, float y, float z)
 {
-    this->pos.x() += x;
-    this->pos.y() += y;
-    this->pos.z() += z;
+    Vector3 vec3 = { x,y,z };
+
+    this->pos += vec3;
+
     this->posVector = Vector3ToVector4(this->pos);
     this->UpdateViewMatrix();
 }
@@ -91,38 +92,52 @@ void Camera::AdjustRotation(float x, float y, float z)
 
 Vector3 Camera::GetForward() const
 {
-    Matrix4x4 rotMatrix;
-    rotMatrix.Matrix4x4RotationRollPitchYaw(rot.x(), rot.y(), rot.z());
+    float pitch = rot.x();  // X-akselin ympäri (ylös/alas)
+    float yaw = rot.y();    // Y-akselin ympäri (vasen/oikea)
 
-    Vector3 forward3 = { DEFAULT_FORWARD_VECTOR.x(), DEFAULT_FORWARD_VECTOR.y(), DEFAULT_FORWARD_VECTOR.z() };
-    Vector3 transformed = Vector3Transform(forward3, rotMatrix);
+    Vector3 forward;
+    forward.x() = sin(yaw) * cos(pitch);
+    forward.y() = sin(pitch);
+    forward.z() = cos(yaw) * cos(pitch);
 
-    Vector3 f;
-    f = transformed;
-    return f;
+    forward.normalize();
+
+    return forward;
 }
 
 Vector3 Camera::GetRight() const
 {
-    Matrix4x4 rotMatrix;
-    rotMatrix.Matrix4x4RotationRollPitchYaw(rot.x(), rot.y(), rot.z());
+    float yaw = rot.y();
 
-    Vector3 right3 = { DEFAULT_RIGHT_VECTOR.x(), DEFAULT_RIGHT_VECTOR.y(), DEFAULT_RIGHT_VECTOR.z() };
-    Vector3 transformed = Vector3Transform(right3, rotMatrix);
+    Vector3 right;
+    right.x() = cos(yaw);
+    right.y() = 0.0f;
+    right.z() = -sin(yaw);
 
-    Vector3 r;
-    r = transformed;
-    return r;
+    right.normalize();
+
+    return right;
+}
+
+Vector3 Camera::GetUp() const
+{
+    return Vector3(0.0f, 1.0f, 0.0f);
 }
 
 void Camera::UpdateViewMatrix()
 {
     Vector3 eye = pos;
-    Vector3 target = Vector3(0.0f, 0.0f, 0.0f);
-    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+    Vector3 forwardDir = GetForward();
+    Vector3 target = eye + forwardDir;
+    Vector3 up = GetUp();
 
-    Vector3 zaxis = target - eye;
-    zaxis.normalize();  
+    std::cout << "=== UpdateViewMatrix ===" << std::endl;
+    std::cout << "Eye: " << eye << std::endl;
+    std::cout << "Forward: " << forwardDir << std::endl;
+    std::cout << "Target: " << target << std::endl;
+
+    Vector3 zaxis = (target - eye);
+    zaxis.normalize();
 
     Vector3 xaxis = up.cross(zaxis);
     xaxis.normalize();
@@ -143,6 +158,4 @@ void Camera::UpdateViewMatrix()
     view(3, 0) = 0.0f; view(3, 1) = 0.0f; view(3, 2) = 0.0f; view(3, 3) = 1.0f;
 
     this->viewMatrix = view;
-
-    std::cout << "View Matrix:\n" << this->viewMatrix << std::endl;
 }

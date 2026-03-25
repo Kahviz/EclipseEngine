@@ -279,11 +279,12 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
 
     if (InProject) {
         if (!CubeB) {
+            std::cout << "Starting..." << std::endl;
             AddAMesh("\\Cube.obj", "Cube", { 0,0,0 }, { 0.5,1,0.5 }, false);
             AddAMesh("\\Cube.obj", "Cube", { 0,-5,0 }, { 10,1,10 }, false);
             AddAMesh("\\Cylinder.obj", "Cylinder", { 1,0,0 }, { 0.5,1,0.5 }, false);
-            wnd->GetGraphics().GetCamera().SetPosition( 5,5,5 );
-            wnd->GetGraphics().GetCamera().SetRotation( 0.625999,3.926,0 );
+            wnd->GetGraphics().GetCamera().SetPosition(5, 5, 5);
+            wnd->GetGraphics().GetCamera().SetRotation(-0.615f, -2.356f, 0.0f);
             CubeB = true;
         }
     }
@@ -347,12 +348,16 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
     wnd->GetGraphics().DrawAFrame(deltatime, Drawables);
 #endif
     if (ctrlPressed) {
-        std::cout << "Position: " << wnd->GetGraphics().GetCamera().GetPositionVector3() << std::endl;
-        std::cout << "View Matrix:\n" << wnd->GetGraphics().GetCamera().GetViewMatrix() << std::endl;
+        //std::cout << "Position: " << wnd->GetGraphics().GetCamera().GetPositionVector3() << std::endl;
+        //std::cout << "View Matrix:\n" << wnd->GetGraphics().GetCamera().GetViewMatrix() << std::endl;
     }
+
     CameraControl camC;
-    if (!ctrlPressed && !Typing)
+    
+
+    if (!ctrlPressed && !Typing) {
         camC.MakeCameraControls(*wnd, deltatime);
+    }
 
 #if INEDITOR == 1 
     if (ImGuiInited) {
@@ -360,6 +365,7 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
         #if DIRECTX11 == 1
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
         #endif
+
         //Vulkan Does it in the renderer
     }
 #endif

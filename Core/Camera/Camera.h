@@ -26,10 +26,10 @@ public:
 
     Vector3 GetForward() const;
     Vector3 GetRight() const;
+    Vector3 GetUp() const;
     void UpdateViewMatrix();
 
 private:
-
     Vector4 posVector;
     Vector4 rotVector;
     Vector3 pos;
