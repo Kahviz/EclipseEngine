@@ -359,7 +359,7 @@ bool MakeGui::MakeDashBoard()
     ImGui::PopStyleColor();
 
     ImVec2 windowSize = ImGui::GetWindowSize();
-    float size = std::min(windowSize.x, windowSize.y);
+    float size = Min(windowSize.x, windowSize.y);
 
     ImVec2 buttonSize = ImVec2(size / 8, size / 8);
     ImVec2 NewProjectSize = ImVec2(sw / 8, sh / 16);

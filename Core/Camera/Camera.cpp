@@ -131,11 +131,6 @@ void Camera::UpdateViewMatrix()
     Vector3 target = eye + forwardDir;
     Vector3 up = GetUp();
 
-    std::cout << "=== UpdateViewMatrix ===" << std::endl;
-    std::cout << "Eye: " << eye << std::endl;
-    std::cout << "Forward: " << forwardDir << std::endl;
-    std::cout << "Target: " << target << std::endl;
-
     Vector3 zaxis = (target - eye);
     zaxis.normalize();
 

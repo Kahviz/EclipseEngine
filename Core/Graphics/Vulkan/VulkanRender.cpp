@@ -57,6 +57,12 @@ const std::vector<uint32_t> indices = {
 
 bool VulkanRender::Init(GLFWwindow* window)
 {
+    float AspectX = screen_width;
+    float AspectY = screen_height;
+    float Aspect = AspectX / AspectY;
+
+    m_Camera.SetProjectionValues(FOV, Aspect, 0.0f, 1000.0f);
+
     #ifdef _DEBUG
         std::cout << "Vulkan Init Started\n";
     #endif
@@ -1092,44 +1098,49 @@ void VulkanRender::createDescriptorSets(const Instance* inst) {
 }
 
 Matrix4x4 VulkanRender::CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar) {
-    Matrix4x4 result;
-
+    Matrix4x4 result(0.0f);
     float f = 1.0f / tanf(fovY * 0.5f);
+    float rangeInv = 1.0f / (zFar - zNear);
 
-    result.x = { f / aspect, 0.0f, 0.0f, 0.0f };
-    result.y = { 0.0f, -f, 0.0f, 0.0f };
-    result.z = { 0.0f, 0.0f, zFar / (zFar - zNear), 1.0f };
-    result.w = { 0.0f, 0.0f, -(zFar * zNear) / (zFar - zNear), 0.0f };
+    result(0, 0) = f / aspect;
+    result(1, 1) = -f;
+    result(2, 2) = zFar * rangeInv;
+    result(2, 3) = 1.0f;          // w-komponentti
+    result(3, 2) = -(zFar * zNear) * rangeInv;
 
     return result;
 }
-
 void VulkanRender::updateUniformBuffer(
     const Instance& inst,
     uint32_t objectIndex,
-    FLOAT3 scale,
-    FLOAT3 Orientation,
-    FLOAT3 pos,
-    INT3 color
+    Vector3 scale,
+    Vector3 Orientation,
+    Vector3 pos,
+    Int3 color
 )
 {
     UniformBufferObject ubo{};
 
-    float angle = Orientation.y;
+    float angle = Orientation.y();
     float cosA = cosf(angle);
     float sinA = sinf(angle);
 
-    ubo.model.x = { cosA * scale.x, 0.0f, -sinA * scale.x, 0.0f };
-    ubo.model.y = { 0.0f, scale.y, 0.0f, 0.0f };
-    ubo.model.z = { sinA * scale.z, 0.0f, cosA * scale.z, 0.0f };
-    ubo.model.w = { pos.x, pos.y, pos.z, 1.0f };
-    
-    // Väri
+    ubo.model.setIdentity();
+    ubo.model(0, 0) = cosA * scale.x();
+    ubo.model(0, 2) = sinA * scale.x();
+    ubo.model(1, 1) = scale.y();
+    ubo.model(2, 0) = -sinA * scale.z();
+    ubo.model(2, 2) = cosA * scale.z();
+    ubo.model(3, 0) = pos.x();
+    ubo.model(3, 1) = pos.y();
+    ubo.model(3, 2) = pos.z();
+    ubo.model(3, 3) = 1.0f;
 
-    ubo.color = Vector3(
-        color.x / 255.0f,
-        color.y / 255.0f,
-        color.z / 255.0f
+    //Color
+    ubo.color = GPUVector3(
+        color.x() / 255.0f,
+        color.y() / 255.0f,
+        color.z() / 255.0f
     );
 
     const Texture* tex = inst.GetConstTexture();
@@ -1140,8 +1151,7 @@ void VulkanRender::updateUniformBuffer(
     else {
         ubo.UsesTexture = 0.0f;
     }
-
-    ubo.view = m_Camera.GetViewMatrix();
+    ubo.view = m_Camera.GetViewMatrix().transposed();
 
     float fovY = 45.0f * PI / 180.0f;
     float aspect = (float)screen_width / (float)screen_height;
@@ -1153,11 +1163,11 @@ void VulkanRender::updateUniformBuffer(
 
 bool VulkanRender::RenderAMesh(
     const Instance* drawable,
-    FLOAT3 Orientation,
-    FLOAT3& pos,
-    FLOAT3& size,
-    INT3 color,
-    FLOAT3& Velocity,
+    Vector3 Orientation,
+    Vector3& pos,
+    Vector3& size,
+    Int3 color,
+    Vector3& Velocity,
     bool Anchored,
     float Roughness,
     float Brightness,

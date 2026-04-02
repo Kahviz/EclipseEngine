@@ -73,11 +73,9 @@ private:
     void CreateConstantBuffers();
     void CompileShaders();
 
-    ID3D11ShaderResourceView* Load(std::string path);
-
     Camera camera;
-    const float Gravity = 9.81f;
     float Fov = DirectX::XMConvertToRadians(90.0f);
+    float zNear = 0.01f;
 
     ComPtr<ID3D11Device> pDevice;
     ComPtr<ID3D11DeviceContext> pContext;

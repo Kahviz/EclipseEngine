@@ -2,16 +2,17 @@
 
 #include "Vulkan/vulkan.h"
 #include <filesystem>
-#include <fstream>      // Add this for ifstream
-#include <vector>       // Add this for vector
-#include <string>       // Add this for string
-#include <stdexcept>    // Add this for exceptions
+#include <fstream>
+#include <vector>
+#include <string>
+#include <stdexcept>
+#include "UntilitedMathLibrary.h"
 
 struct UniformBufferObject {
     Matrix4x4 model;
-    Matrix4x4 view; 
+    Matrix4x4 view;
     Matrix4x4 proj;
-    Vector3 color;
+    GPUVector3 color;
     float UsesTexture;
 };
 

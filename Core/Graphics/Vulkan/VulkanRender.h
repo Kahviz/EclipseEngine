@@ -9,7 +9,7 @@
 #include <cstring>
 #include <string>
 #include "chrono"
-#include "Math/UntilitedMath.h"
+#include "UntilitedMathLibrary.h"
 #include "ScoreCounter.h"
 #include <GLFW/glfw3.h>
 #include "Vulkan/VulkanHelpers.h"
@@ -45,8 +45,8 @@ public:
     void createDescriptorPool();
     void createDescriptorSets(const Instance* inst = nullptr);
     Matrix4x4 CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar);
-    void updateUniformBuffer(const Instance& inst, uint32_t objectIndex, FLOAT3 scale, FLOAT3 Orientation, FLOAT3 pos, INT3 color);
-    bool RenderAMesh(const Instance* drawable, FLOAT3 Orientation, FLOAT3& pos, FLOAT3& size, INT3 color, FLOAT3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
+    void updateUniformBuffer(const Instance& inst, uint32_t objectIndex, Vector3 scale, Vector3 Orientation, Vector3 pos, Int3 color);
+    bool RenderAMesh(const Instance* drawable, Vector3 Orientation, Vector3& pos, Vector3& size, Int3 color, Vector3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
 
     void DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables);
     Camera& GetCamera();

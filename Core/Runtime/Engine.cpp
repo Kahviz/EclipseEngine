@@ -282,7 +282,7 @@ void Engine::EngineDoFrame(Window* wnd, float deltatime)
             std::cout << "Starting..." << std::endl;
             AddAMesh("\\Cube.obj", "Cube", { 0,0,0 }, { 0.5,1,0.5 }, false);
             AddAMesh("\\Cube.obj", "Cube", { 0,-5,0 }, { 10,1,10 }, false);
-            AddAMesh("\\Cylinder.obj", "Cylinder", { 1,0,0 }, { 0.5,1,0.5 }, false);
+            //AddAMesh("\\Cylinder.obj", "Cylinder", { 1,0,0 }, { 0.5,1,0.5 }, false);
             wnd->GetGraphics().GetCamera().SetPosition(5, 5, 5);
             wnd->GetGraphics().GetCamera().SetRotation(-0.615f, -2.356f, 0.0f);
             CubeB = true;

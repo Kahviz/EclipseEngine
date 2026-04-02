@@ -35,11 +35,10 @@ void Dx11Renderer::InitDx11Renderer(HWND hWnd)
     CreateRenderTarget();
     pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(), pDepthStencilView.Get());
 
-    camera.SetPosition(0.0f, 0.0f, -5.0f);
     float AspectX = screen_width;
     float AspectY = screen_height;
     float Aspect = AspectX / AspectY;
-    camera.SetProjectionValues(FOV, Aspect, 0.5f, 1000.0f);
+    camera.SetProjectionValues(FOV, Aspect, zNear, 1000.0f);
 
     CreateConstantBuffers();
     CreateShadowResources();
@@ -541,86 +540,6 @@ void Dx11Renderer::CompileShaders()
     if (FAILED(hr)) throw std::runtime_error("Failed to create input layout");
 }
 
-ID3D11ShaderResourceView* Dx11Renderer::Load(std::string path)
-{
-    if (!std::filesystem::exists(path))
-        return nullptr;
-
-    std::wstring wpath(path.begin(), path.end());
-
-    IWICImagingFactory* factory = nullptr;
-    CoCreateInstance(
-        CLSID_WICImagingFactory,
-        nullptr,
-        CLSCTX_INPROC_SERVER,
-        IID_PPV_ARGS(&factory)
-    );
-
-    IWICBitmapDecoder* decoder = nullptr;
-
-    factory->CreateDecoderFromFilename(
-        wpath.c_str(),
-        nullptr,
-        GENERIC_READ,
-        WICDecodeMetadataCacheOnLoad,
-        &decoder
-    );
-
-    IWICBitmapFrameDecode* frame = nullptr;
-    decoder->GetFrame(0, &frame);
-
-    IWICFormatConverter* converter = nullptr;
-    factory->CreateFormatConverter(&converter);
-
-    converter->Initialize(
-        frame,
-        GUID_WICPixelFormat32bppRGBA,
-        WICBitmapDitherTypeNone,
-        nullptr,
-        0.0,
-        WICBitmapPaletteTypeCustom
-    );
-
-    UINT width, height;
-    frame->GetSize(&width, &height);
-
-    std::vector<BYTE> pixels(width * height * 4);
-
-    converter->CopyPixels(
-        nullptr,
-        width * 4,
-        pixels.size(),
-        pixels.data()
-    );
-
-    D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = width;
-    desc.Height = height;
-    desc.MipLevels = 1;
-    desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc.Count = 1;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-    D3D11_SUBRESOURCE_DATA data = {};
-    data.pSysMem = pixels.data();
-    data.SysMemPitch = width * 4;
-
-    ID3D11Texture2D* texture = nullptr;
-    pDevice->CreateTexture2D(&desc, &data, &texture);
-
-    ID3D11ShaderResourceView* srv = nullptr;
-    pDevice->CreateShaderResourceView(texture, nullptr, &srv);
-
-    texture->Release();
-    converter->Release();
-    frame->Release();
-    decoder->Release();
-    factory->Release();
-
-    return srv;
-}
-
 void Dx11Renderer::ReSizeWindow(int width, int height, HWND hWnd)
 {
     if (!pSwap) return;
@@ -629,8 +548,6 @@ void Dx11Renderer::ReSizeWindow(int width, int height, HWND hWnd)
     pDepthStencilView.Reset();
     pContext->ClearState();
     pContext->Flush();
-
-
 
     HRESULT hr = pSwap->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
     if (FAILED(hr)) {
@@ -658,7 +575,7 @@ void Dx11Renderer::ReSizeWindow(int width, int height, HWND hWnd)
     viewport_width = AspectX;
 
     CreateSceneResources(width, height);
-    camera.SetProjectionValues(FOV, Aspect, 0.5f, 1000.0f);
+    camera.SetProjectionValues(FOV, Aspect, zNear, 1000.0f);
 }
 
 
