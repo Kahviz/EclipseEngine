@@ -68,7 +68,21 @@ bool VulkanRender::Init(GLFWwindow* window)
     #endif
 
     uint32_t extCount = 0;
-    if (!builder.MakeInstance(extCount, instance)) {
+    const char** extensions = glfwGetRequiredInstanceExtensions(&extCount);
+
+    VkApplicationInfo appInfo{};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName = "UntilitedGameEngine";
+    appInfo.apiVersion = VK_API_VERSION_1_2;
+
+    VkInstanceCreateInfo instInfo{};
+    instInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instInfo.pApplicationInfo = &appInfo;
+    instInfo.enabledExtensionCount = extCount;
+    instInfo.ppEnabledExtensionNames = extensions;
+
+    if (vkCreateInstance(&instInfo, nullptr, &instance) != VK_SUCCESS) {
+        MakeAError("Vulkan doesnt work");
         return false;
     }
 
@@ -81,15 +95,95 @@ bool VulkanRender::Init(GLFWwindow* window)
 
     MakeASuccess("Surface Created");
 
-    if (!builder.ChooseGPU(physicalDevice, m_SC, instance)) {
+    uint32_t gpuCount = 0;
+    vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
+
+    if (gpuCount == 0) {
+        MakeAError("No Vulkan GPU found");
         return false;
     }
 
-    if (!builder.InitQueueFamily(physicalDevice, graphicsFamilyIndex, surface)) {
+    std::vector<VkPhysicalDevice> gpus(gpuCount);
+    vkEnumeratePhysicalDevices(instance, &gpuCount, gpus.data());
+
+    int bestScore = -100000;
+
+    for (VkPhysicalDevice device : gpus) {
+        int score = m_SC.ScoreDevice(device);
+
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(device, &props);
+
+        #ifdef _DEBUG
+                std::cout << props.deviceName << " score = " << score << "\n";
+        #endif // _DEBUG
+
+
+        if (score > bestScore) {
+            bestScore = score;
+            physicalDevice = device;
+        }
+    }
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        MakeAError("No suitable GPU found");
         return false;
     }
 
-    if (!builder.CreateDevice(physicalDevice, device, graphicsFamilyIndex)) {
+    VkPhysicalDeviceProperties selectedProps;
+    vkGetPhysicalDeviceProperties(physicalDevice, &selectedProps);
+
+    #ifdef _DEBUG
+        std::cout << "Selected GPU: " << selectedProps.deviceName << "\n";
+    #endif // _DEBUG
+
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+
+    graphicsFamilyIndex = -1;
+
+    for (size_t i = 0; i < queueFamilies.size(); i++) {
+        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            VkBool32 presentSupport = false;
+
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
+            if (presentSupport) {
+                graphicsFamilyIndex = i;
+                break;
+            }
+        }
+    }
+
+    if (graphicsFamilyIndex == -1) {
+        MakeAError("graphicsFamilyIndex == -1");
+        return false;
+    }
+
+
+    const char* deviceExtensions[] = { "VK_KHR_swapchain" };
+
+    float queuePriority = 1.0f;
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = graphicsFamilyIndex;
+    queueCreateInfo.queueCount = 1;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    VkDeviceCreateInfo deviceCreateInfo{};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceCreateInfo.enabledExtensionCount = 1;
+    deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions;
+    deviceCreateInfo.enabledLayerCount = 0;
+    deviceCreateInfo.pEnabledFeatures = nullptr;
+
+    if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS) {
+        MakeAError("Can't Create a VkDevice");
         return false;
     }
 
@@ -105,12 +199,35 @@ bool VulkanRender::Init(GLFWwindow* window)
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
 
     VkSurfaceFormatKHR surfaceFormat = formats[0];
-    builder.ChooseSurfaceFormat(surfaceFormat, formats);
+    for (const auto& availableFormat : formats) {
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+            availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            surfaceFormat = availableFormat;
+            break;
+        }
+    }
 
    
 
     VkPresentModeKHR presentMode;
-    builder.ChoosePresentMode(presentMode, physicalDevice, surface);
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+    std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+
+    if (vSync) {
+        presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    }
+    else {
+        presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+
+        for (const auto& mode : presentModes) {
+            if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                presentMode = mode;
+                break;
+            }
+        }
+    }
 
     VkExtent2D extent;
     if (surfaceCapabilities.currentExtent.width != UINT32_MAX) {
@@ -885,7 +1002,24 @@ void VulkanRender::CreateSwapchain() {
     }
 
     VkPresentModeKHR presentMode;
-    builder.ChoosePresentMode(presentMode, physicalDevice, surface);
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+    std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+
+    if (vSync) {
+        presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    }
+    else {
+        presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+
+        for (const auto& mode : presentModes) {
+            if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                presentMode = mode;
+                break;
+            }
+        }
+    }
 
     VkExtent2D extent = surfaceCapabilities.currentExtent;
     if (extent.width == UINT32_MAX || extent.width == 0) {
