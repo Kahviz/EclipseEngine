@@ -41,7 +41,6 @@ public:
     void CreateCommandBuffers();
     void CreateFramebuffers();
     void CreateImageViews();
-    void CleanupSwapchain();
     void CreateSwapchain();
     void createUniformBuffers();
     void createDescriptorPool();

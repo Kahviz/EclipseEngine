@@ -97,6 +97,32 @@ bool VulkanSwapchain::Init(VkDevice& device,VkPhysicalDevice& physicalDevice, Vk
     }
 	return true;
 }
+bool VulkanSwapchain::CleanupSwapchain(VkDevice& device, VkCommandPool& commandPool, std::vector<VkCommandBuffer>& commandBuffers)
+{
+    for (auto framebuffer : swapchainFramebuffers) {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+    swapchainFramebuffers.clear();
+
+    for (auto imageView : swapchainImageViews) {
+        vkDestroyImageView(device, imageView, nullptr);
+    }
+    swapchainImageViews.clear();
+
+    if (!commandBuffers.empty()) {
+        vkFreeCommandBuffers(device, commandPool,
+            static_cast<uint32_t>(commandBuffers.size()),
+            commandBuffers.data());
+        commandBuffers.clear();
+    }
+
+    if (swapchain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(device, swapchain, nullptr);
+        swapchain = VK_NULL_HANDLE;
+    }
+    return true;
+}
+
 VkExtent2D VulkanSwapchain::ChooseSwapchainExtent(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);

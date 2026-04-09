@@ -9,7 +9,7 @@
 class VulkanSwapchain {
 public:
 	bool Init(VkDevice& device, VkPhysicalDevice& physicalDevice, VkSurfaceKHR& surface);
-
+	bool CleanupSwapchain(VkDevice& device, VkCommandPool& commandPool, std::vector<VkCommandBuffer>& commandBuffers);
 	VkExtent2D ChooseSwapchainExtent(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 
 	//Getters

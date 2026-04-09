@@ -683,7 +683,7 @@ void VulkanRender::RecordCommandBuffer(uint32_t imageIndex, bool renderImGui)
 void VulkanRender::RecreateSwapchain() {
     vkDeviceWaitIdle(vkDevice.GetDevice());
 
-    CleanupSwapchain();
+    vkSwapchain.CleanupSwapchain(vkDevice.GetDevice(),commandPool,commandBuffers);
 
     CreateSwapchain();
     CreateImageViews();
@@ -756,32 +756,6 @@ void VulkanRender::CreateImageViews() {
         }
     }
 }
-
-
-void VulkanRender::CleanupSwapchain() {
-    for (auto framebuffer : vkSwapchain.GetSwapchainFramebuffers()) {
-        vkDestroyFramebuffer(vkDevice.GetDevice(), framebuffer, nullptr);
-    }
-    vkSwapchain.GetSwapchainFramebuffers().clear();
-
-    for (auto imageView : vkSwapchain.GetSwapchainImageViews()) {
-        vkDestroyImageView(vkDevice.GetDevice(), imageView, nullptr);
-    }
-    vkSwapchain.GetSwapchainImageViews().clear();
-
-    if (!commandBuffers.empty()) {
-        vkFreeCommandBuffers(vkDevice.GetDevice(), commandPool,
-            static_cast<uint32_t>(commandBuffers.size()),
-            commandBuffers.data());
-        commandBuffers.clear();
-    }
-
-    if (vkSwapchain.GetSwapchain() != VK_NULL_HANDLE) {
-        vkDestroySwapchainKHR(vkDevice.GetDevice(), vkSwapchain.GetSwapchain(), nullptr);
-        vkSwapchain.GetSwapchain() = VK_NULL_HANDLE;
-    }
-}
-
 
 void VulkanRender::CreateSwapchain() {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
