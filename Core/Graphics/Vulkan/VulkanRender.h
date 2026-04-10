@@ -26,7 +26,7 @@
 #include "VulkanInstance/VulkanInstance.h"
 #include "VulkanSwapchain/VulkanSwapchain.h"
 #include "VulkanCommandBuffer/VulkanCommandBuffer.h"
-
+#include "VulkanPipeline/VulkanPipeline.h"
 class Texture;
 
 class VulkanRender {
@@ -34,7 +34,6 @@ public:
     VulkanRender() = default;
     void CreateDepthResources(uint32_t width, uint32_t height);
     bool Init(GLFWwindow* window);
-    void createDescriptorSetLayout();
     void Cleanup();
     uint32_t GetImageIndex();
     void RecordCommandBuffer(uint32_t imageIndex, bool renderImGui);
@@ -62,7 +61,7 @@ public:
     VkDevice GetDevice() { return vkDevice.GetDevice(); };
     VkPhysicalDevice GetPhysicalDevice() { return vkDevice.GetPhysicalDevice(); };
 
-    VkPipeline GetPipeline() { return graphicsPipeline; };
+    VkPipeline GetPipeline() { return vkPipeline.GetGraphicsPipeline(); };
     VkInstance& GetInstance() { return vkInstance.GetInstance(); };
     VkDescriptorPool& GetImGuiPool() { return imguiPool; };
     std::vector<VkCommandBuffer> GetCommandBuffers() { return vkCommandBuffer.GetCommandBuffers(); };
@@ -78,7 +77,7 @@ private:
     VulkanInstance vkInstance;
     VulkanSwapchain vkSwapchain;
     VulkanCommandBuffer vkCommandBuffer;
-
+    VulkanPipeline vkPipeline;
     Camera m_Camera;
 
     struct DrawCommand {
@@ -107,7 +106,6 @@ private:
     GLFWwindow* main_window = nullptr;
     void* uniformBufferMapped = nullptr;
 
-    VkPipeline graphicsPipeline = VK_NULL_HANDLE;
     VkBuffer uniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory uniformBufferMemory = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
@@ -119,12 +117,8 @@ private:
     VkBuffer indexBuffer = VK_NULL_HANDLE;
     VkFence inFlightFence = VK_NULL_HANDLE;
     VkRenderPass renderPass = VK_NULL_HANDLE;
-    VkShaderModule vertShaderModule = VK_NULL_HANDLE;
-    VkShaderModule fragShaderModule = VK_NULL_HANDLE;
     VkBuffer vertexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
-    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-    VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 
     //Depth
     VkImage depthImage = VK_NULL_HANDLE;
