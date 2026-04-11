@@ -109,12 +109,16 @@ Engine::~Engine()
     if (ImGuiInited) {
         #if DIRECTX11 == 1
             ImGui_ImplDX11_Shutdown();
-        #endif
+        #endif //Vulkan Does it in CleanUp
 
         #if VULKAN == 1
-            ImGui_ImplVulkan_Shutdown();
+            for (auto& Drawable : Drawables) {
+                if (Drawable->GetTexture()->IsLoaded()) {
+                    Drawable->GetTexture()->Cleanup(window.GetGraphics().GetDevice());
+                }
+            }
+            window.GetGraphics().VR->Cleanup();
         #endif
-
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
         ImGuiInited = false;
@@ -145,13 +149,7 @@ int Engine::EngineRun()
         glfwPollEvents();
     }
 
-    #if VULKAN == 1
-        for (auto& Drawable : Drawables) {
-            if (Drawable->GetTexture()->IsLoaded()) {
-                Drawable->GetTexture()->Cleanup(window.GetGraphics().GetDevice());
-            }
-        }
-    #endif
+    
 
     profiler.PrintInformation();
 

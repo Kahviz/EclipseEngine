@@ -280,57 +280,65 @@ void VulkanRender::CreateDepthResources(uint32_t width, uint32_t height) {
 
 void VulkanRender::Cleanup()
 {
+    MakeAInfo("Starting Vulkan Cleanup");
+
     if (vkDevice.GetDevice() != VK_NULL_HANDLE) {
         vkDeviceWaitIdle(vkDevice.GetDevice());
     }
 
+    if (imguiPool != VK_NULL_HANDLE) {
+        ImGui_ImplVulkan_Shutdown();
+        vkDestroyDescriptorPool(vkDevice.GetDevice(), imguiPool, nullptr);
+        imguiPool = VK_NULL_HANDLE;
+    }
+
     meshCache.clear();
 
-    if (!vkSwapchain.CleanupSwapchain(vkDevice.GetDevice(),vkCommandBuffer.GetCommandPool(),vkCommandBuffer.GetCommandBuffers())) {
+    if (!vkSwapchain.CleanupSwapchain(vkDevice.GetDevice(), vkCommandBuffer.GetCommandPool(), vkCommandBuffer.GetCommandBuffers())) {
         MakeAError("A Error happened in vkSwapchain.CleanupSwapchain");
     }
 
     if (indexBuffer != VK_NULL_HANDLE) {
         vkDestroyBuffer(vkDevice.GetDevice(), indexBuffer, nullptr);
+        indexBuffer = VK_NULL_HANDLE;
     }
-
     if (indexBufferMemory != VK_NULL_HANDLE) {
         vkFreeMemory(vkDevice.GetDevice(), indexBufferMemory, nullptr);
+        indexBufferMemory = VK_NULL_HANDLE;
     }
 
     if (vkPipeline.GetVertShaderModule() != VK_NULL_HANDLE) {
         vkDestroyShaderModule(vkDevice.GetDevice(), vkPipeline.GetVertShaderModule(), nullptr);
     }
-
     if (vkPipeline.GetFragShaderModule() != VK_NULL_HANDLE) {
         vkDestroyShaderModule(vkDevice.GetDevice(), vkPipeline.GetFragShaderModule(), nullptr);
+    }
+
+    if (depthImageView != VK_NULL_HANDLE) {
+        vkDestroyImageView(vkDevice.GetDevice(), depthImageView, nullptr);
+        depthImageView = VK_NULL_HANDLE;
+    }
+    if (depthImage != VK_NULL_HANDLE) {
+        vkDestroyImage(vkDevice.GetDevice(), depthImage, nullptr);
+        depthImage = VK_NULL_HANDLE;
+    }
+    if (depthImageMemory != VK_NULL_HANDLE) {
+        vkFreeMemory(vkDevice.GetDevice(), depthImageMemory, nullptr);
+        depthImageMemory = VK_NULL_HANDLE;
     }
 
     if (vkDevice.GetSurface() != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(vkInstance.GetInstance(), vkDevice.GetSurface(), nullptr);
     }
 
-    if (vkInstance.GetInstance() != VK_NULL_HANDLE) {
-        vkDestroyInstance(vkInstance.GetInstance(), nullptr);
-    }
-        
     if (vkDevice.GetDevice() != VK_NULL_HANDLE) {
         vkDestroyDevice(vkDevice.GetDevice(), nullptr);
     }
 
-    if (depthImageView != VK_NULL_HANDLE) {
-        vkDestroyImageView(vkDevice.GetDevice(), depthImageView, nullptr);
+    if (vkInstance.GetInstance() != VK_NULL_HANDLE) {
+        vkDestroyInstance(vkInstance.GetInstance(), nullptr);
     }
-
-    if (depthImage != VK_NULL_HANDLE) {
-        vkDestroyImage(vkDevice.GetDevice(), depthImage, nullptr);
-    }
-
-    if (depthImageMemory != VK_NULL_HANDLE) {
-        vkFreeMemory(vkDevice.GetDevice(), depthImageMemory, nullptr);
-    }
-
-    MakeASuccess("Cleanupped succesful!");
+    MakeAInfo("Cleaned up successfully!");
 }
 
 uint32_t VulkanRender::GetImageIndex() {

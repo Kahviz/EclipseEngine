@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <iostream>
-
+#include "GLOBALS.h"
 inline void MakeAError(const std::string& text) {
     #ifdef _DEBUG
         #if INEDITOR == 1

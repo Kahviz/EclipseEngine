@@ -26,13 +26,9 @@ void Profiler::PrintInformation()
         float AverageFPS = TotalFPS / TotalFrames;
 
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << AverageFPS;
+        ss << "Avarage FPS (Not Real Something is wrong with this i fix this later):" << std::fixed << std::setprecision(2) << AverageFPS;
 
-        MakeASuccess("ProfilerInfo");
+        MakeASuccess("ProfilerInfo ");
         ProfilerInformation(ss.str());
-
-        std::cout << "DEBUG - TotalFPS: " << TotalFPS
-            << ", TotalFrames: " << TotalFrames
-            << ", Avg: " << AverageFPS << std::endl;
     #endif
 }
