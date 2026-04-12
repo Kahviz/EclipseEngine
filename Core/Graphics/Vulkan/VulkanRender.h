@@ -133,8 +133,8 @@ private:
     VkImageView depthImageView = VK_NULL_HANDLE;
     VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
 
-    //Shadows
 
+    //To-Do  render pass, pipeline, framebuffer, command buffer
     // Shadow map
     VkImage shadowImage;
     VkImageView shadowImageView;
