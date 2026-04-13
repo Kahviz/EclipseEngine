@@ -29,9 +29,7 @@ bool Texture::LoadVK(const std::string& path, VulkanRender& vulkanrenderer)
 {
     VkDevice device = vulkanrenderer.GetDevice();
     VkPhysicalDevice physicalDevice = vulkanrenderer.GetPhysicalDevice();
-
-    UGE_VK_ASSERT(device, "Device Can't Be Null");
-
+    UGE_VK_ASSERT(device, "Device Can't Be VK_NULL_HANDLE");
     if (!fs::exists(path)) {
         MakeAError("Texture Doesn't Exist! Path: " + path);
         return false;

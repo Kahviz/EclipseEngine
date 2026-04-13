@@ -210,8 +210,10 @@ bool VulkanRender::Init(GLFWwindow* window)
     createDescriptorPool();
     createDescriptorSets(nullptr);
 
-    createShadowResources();
     createShadowRenderPass();
+    createShadowResources();
+    createShadowPipeline();
+
     //InitEnd
     MakeASuccess("No Fatal Errors in Vulkan Initing :D-<");
     return true;
@@ -294,6 +296,26 @@ void VulkanRender::Cleanup()
 
     meshCache.clear();
 
+    if (shadowFramebuffer != VK_NULL_HANDLE) {
+        vkDestroyFramebuffer(vkDevice.GetDevice(), shadowFramebuffer, nullptr);
+        shadowFramebuffer = VK_NULL_HANDLE;
+    }
+    if (shadowSampler != VK_NULL_HANDLE) {
+        vkDestroySampler(vkDevice.GetDevice(), shadowSampler, nullptr);
+        shadowSampler = VK_NULL_HANDLE;
+    }
+    if (shadowImageView != VK_NULL_HANDLE) {
+        vkDestroyImageView(vkDevice.GetDevice(), shadowImageView, nullptr);
+        shadowImageView = VK_NULL_HANDLE;
+    }
+    if (shadowImage != VK_NULL_HANDLE) {
+        vkDestroyImage(vkDevice.GetDevice(), shadowImage, nullptr);
+        shadowImage = VK_NULL_HANDLE;
+    }
+    if (shadowImageMemory != VK_NULL_HANDLE) {
+        vkFreeMemory(vkDevice.GetDevice(), shadowImageMemory, nullptr);
+        shadowImageMemory = VK_NULL_HANDLE;
+    }
     if (!vkSwapchain.CleanupSwapchain(vkDevice.GetDevice(), vkCommandBuffer.GetCommandPool(), vkCommandBuffer.GetCommandBuffers())) {
         MakeAError("A Error happened in vkSwapchain.CleanupSwapchain");
     }
@@ -808,8 +830,58 @@ bool VulkanRender::RenderAMesh(
 #endif // VULKAN == 1
 }
 
+void VulkanRender::PrintInfo() {
+    /*
+    VkImage shadowImage = VK_NULL_HANDLE;
+    VkImageView shadowImageView = VK_NULL_HANDLE;
+    VkDeviceMemory shadowImageMemory = VK_NULL_HANDLE;
+    VkSampler shadowSampler = VK_NULL_HANDLE;
+    VkRenderPass shadowRenderPass = VK_NULL_HANDLE;
+    VkPipeline shadowPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
+    VkFramebuffer shadowFramebuffer = VK_NULL_HANDLE;
+
+    VkCommandBuffer shadowCommandBuffer = VK_NULL_HANDLE;
+    */
+
+    if (shadowImage == VK_NULL_HANDLE) {
+        MakeAError("shadowImage is VK_NULL_HANDLE");
+    }
+    if (shadowImageView == VK_NULL_HANDLE) {
+        MakeAError("shadowImageView is VK_NULL_HANDLE");
+    }
+    if (shadowImageMemory == VK_NULL_HANDLE) {
+        MakeAError("shadowImageMemory is VK_NULL_HANDLE");
+    }
+    if (shadowSampler == VK_NULL_HANDLE) {
+        MakeAError("shadowSampler is VK_NULL_HANDLE");
+    }
+    if (shadowRenderPass == VK_NULL_HANDLE) {
+        MakeAError("shadowRenderPass is VK_NULL_HANDLE");
+    }
+    if (shadowPipeline == VK_NULL_HANDLE) {
+        MakeAError("shadowPipeline is VK_NULL_HANDLE");
+    }
+    if (shadowPipelineLayout == VK_NULL_HANDLE) {
+        MakeAError("shadowPipelineLayout is VK_NULL_HANDLE");
+    }
+    if (shadowFramebuffer == VK_NULL_HANDLE) {
+        MakeAError("shadowFramebuffer is VK_NULL_HANDLE");
+    }
+    MakeAInfo("Checked all the shadowrecoureces");
+}
+
 void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables)
 {
+    static int frames = 0;
+    frames++;
+
+    if (frames == 500) {
+        frames = 0;
+
+        PrintInfo();
+    }
+
     vkWaitForFences(vkDevice.GetDevice(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(vkDevice.GetDevice(), 1, &inFlightFence);
 
@@ -931,25 +1003,47 @@ void VulkanRender::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
 }
 
 //Shadows
-
 void VulkanRender::createShadowResources()
 {
+    UGE_VK_ASSERT(vkDevice.GetPhysicalDevice(), "Physical device is VK_NULL_HANDLE!");
+
+    VkFormatProperties formatProps;
+    vkGetPhysicalDeviceFormatProperties(vkDevice.GetPhysicalDevice(), VK_FORMAT_D32_SFLOAT, &formatProps);
+
+    if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
+        MakeAError("VK_FORMAT_D32_SFLOAT does not support depth attachment!");
+    }
+
     VkImageCreateInfo imageinfo{};
     imageinfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageinfo.imageType = VK_IMAGE_TYPE_2D;
     imageinfo.extent.width = SHADOW_MAP_SIZE;
     imageinfo.extent.height = SHADOW_MAP_SIZE;
+    imageinfo.extent.depth = 1;
+    imageinfo.mipLevels = 1;
+    imageinfo.arrayLayers = 1;
     imageinfo.format = VK_FORMAT_D32_SFLOAT;
-    imageinfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;;
+    imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageinfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateImage(vkDevice.GetDevice(), &imageinfo, nullptr, &shadowImage) != VK_SUCCESS) {
-        MakeAError("Failed to create shadowImage");
+    UGE_ASSERT_VKRESULT(vkCreateImage(vkDevice.GetDevice(), &imageinfo, nullptr, &shadowImage),"Failed to create shadowImage");
+
+    if (shadowImage == VK_NULL_HANDLE) {
+        MakeAError("shadowImage is NULL even though creation succeeded!");
+        return;
     }
-
 
     VkMemoryRequirements memRequirements;
     vkGetImageMemoryRequirements(vkDevice.GetDevice(), shadowImage, &memRequirements);
+
+    if (memRequirements.size == 0) {
+        MakeAError("Memory size is 0");
+        MakeAError("This suggests a driver bug or invalid image parameters");
+        return;
+    }
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -960,8 +1054,13 @@ void VulkanRender::createShadowResources()
         vkDevice.GetPhysicalDevice()
     );
 
-    vkAllocateMemory(vkDevice.GetDevice(), &allocInfo, nullptr, &shadowImageMemory);
-    vkBindImageMemory(vkDevice.GetDevice(), shadowImage, shadowImageMemory, 0);
+    UGE_ASSERT_VKRESULT(vkAllocateMemory(vkDevice.GetDevice(), &allocInfo, nullptr, &shadowImageMemory), "Failed to allocate memory for shadowImageMemory");
+
+    if (vkBindImageMemory(vkDevice.GetDevice(), shadowImage, shadowImageMemory, 0) != VK_SUCCESS) {
+        MakeAError("Failed to bind memory for shadowImageMemory");
+    }
+
+    MakeASuccess("Allocated shadowImageMemory");
 
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -974,10 +1073,7 @@ void VulkanRender::createShadowResources()
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(vkDevice.GetDevice(), &viewInfo, nullptr, &shadowImageView) != VK_SUCCESS) {
-        MakeAError("Failed to create shadowImageView");
-    }
-
+    UGE_ASSERT_VKRESULT(vkCreateImageView(vkDevice.GetDevice(), &viewInfo, nullptr, &shadowImageView), "Failed to create shadowImageView");
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -994,6 +1090,17 @@ void VulkanRender::createShadowResources()
     if (vkCreateSampler(vkDevice.GetDevice(), &samplerInfo, nullptr, &shadowSampler) != VK_SUCCESS) {
         MakeAError("Failed to create shadow sampler!");
     }
+
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.renderPass = shadowRenderPass;
+    framebufferInfo.attachmentCount = 1;
+    framebufferInfo.pAttachments = &shadowImageView;
+    framebufferInfo.width = SHADOW_MAP_SIZE;
+    framebufferInfo.height = SHADOW_MAP_SIZE;
+    framebufferInfo.layers = 1;
+    
+    UGE_ASSERT_VKRESULT(vkCreateFramebuffer(vkDevice.GetDevice(), &framebufferInfo, nullptr, &shadowFramebuffer), "Failed to create shadow framebuffer");
 }
 void VulkanRender::createShadowRenderPass() {
     VkAttachmentDescription depthAttachment{};
@@ -1029,5 +1136,131 @@ void VulkanRender::createShadowRenderPass() {
     else {
         MakeAInfo("shadowRenderpass created!");
     }
+}
+void VulkanRender::createShadowPipeline() {
+    std::string Shaders = std::string(PROJECT_DIR) + "Core/Shaders/";
+    auto vertShaderCode = ReadFile(Shaders + "shadow_vertex.spv");
+    VkShaderModule vertShaderModule = CreateShaderModule(vkDevice.GetDevice(), vertShaderCode);
+
+    VkPipelineShaderStageCreateInfo vertStage{};
+    vertStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertStage.module = vertShaderModule;
+    vertStage.pName = "main";
+
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0;
+    pipelineLayoutInfo.pSetLayouts = nullptr;
+
+    if (vkCreatePipelineLayout(vkDevice.GetDevice(), &pipelineLayoutInfo, nullptr, &shadowPipelineLayout) != VK_SUCCESS) {
+        MakeAError("Failed to create shadow pipeline layout!");
+        return;
+    }
+
+    VkVertexInputBindingDescription binding{};
+    binding.binding = 0;
+    binding.stride = sizeof(float) * 3;
+    binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    VkVertexInputAttributeDescription attribute{};
+    attribute.binding = 0;
+    attribute.location = 0;
+    attribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+    attribute.offset = 0;
+
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = &binding;
+    vertexInputInfo.vertexAttributeDescriptionCount = 1;
+    vertexInputInfo.pVertexAttributeDescriptions = &attribute;
+
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+    inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float)SHADOW_MAP_SIZE;
+    viewport.height = (float)SHADOW_MAP_SIZE;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = { SHADOW_MAP_SIZE, SHADOW_MAP_SIZE };
+
+    VkPipelineViewportStateCreateInfo viewportState{};
+    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &viewport;
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+
+    VkPipelineRasterizationStateCreateInfo rasterizer{};
+    rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizer.depthClampEnable = VK_FALSE;
+    rasterizer.rasterizerDiscardEnable = VK_FALSE;
+    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer.lineWidth = 1.0f;
+    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer.depthBiasEnable = VK_TRUE;
+    rasterizer.depthBiasConstantFactor = 1.25f;
+    rasterizer.depthBiasSlopeFactor = 1.75f;
+
+    VkPipelineMultisampleStateCreateInfo multisampling{};
+    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling.sampleShadingEnable = VK_FALSE;
+    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    VkPipelineDepthStencilStateCreateInfo depthStencil{};
+    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable = VK_TRUE;
+    depthStencil.depthWriteEnable = VK_TRUE;
+    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable = VK_FALSE;
+    depthStencil.stencilTestEnable = VK_FALSE;
+
+    VkPipelineColorBlendStateCreateInfo colorBlending{};
+    colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlending.attachmentCount = 0;
+
+    std::vector<VkDynamicState> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = 1;
+    pipelineInfo.pStages = &vertStage;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = &depthStencil;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = &dynamicState;
+    pipelineInfo.layout = shadowPipelineLayout;
+    pipelineInfo.renderPass = shadowRenderPass;
+    pipelineInfo.subpass = 0;
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+    if (vkCreateGraphicsPipelines(vkDevice.GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &shadowPipeline) != VK_SUCCESS) {
+        MakeAError("Failed to create shadow pipeline!");
+    }
+
+    vkDestroyShaderModule(vkDevice.GetDevice(), vertShaderModule, nullptr);
+
+    MakeASuccess("Shadow pipeline created!");
 }
 #endif

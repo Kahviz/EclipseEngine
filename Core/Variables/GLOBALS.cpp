@@ -11,7 +11,7 @@ float zFar = 1000.0f;
 extern int viewport_width = 400;
 extern int viewport_height = 200;
 
-bool vSync = false;
+bool vSync = true;
 bool Running = true;
 bool Typing = false;
 float FOV = 100.0f;

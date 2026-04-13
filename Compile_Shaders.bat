@@ -23,5 +23,16 @@ if exist "Core\Shaders\Source\fragment.glsl" (
         exit /b 1
     )
 )
+
+REM shadowvertex shader
+if exist "Core\Shaders\Source\shadow_vertex.glsl" (
+    echo Compiling shadow_vertex.glsl...
+    "C:\VulkanSDK\1.4.335.0\Bin\glslangValidator.exe" -V "Core\Shaders\Source\shadow_vertex.glsl" -o "Core\Shaders\shadow_vertex.spv" --target-env vulkan1.2 -S vert
+    if errorlevel 1 (
+        echo ERROR: Failed to compile shadow_vertex.glsl
+        pause
+        exit /b 1
+    )
+)
 echo Vulkan Shaders compiled successfully
 pause

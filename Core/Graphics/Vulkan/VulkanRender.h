@@ -50,6 +50,8 @@ public:
     void updateUniformBuffer(const Instance& inst, uint32_t objectIndex, Vector3 scale, Vector3 Orientation, Vector3 pos, Int3 color);
     bool RenderAMesh(const Instance* drawable, Vector3 Orientation, Vector3& pos, Vector3& size, Int3 color, Vector3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
 
+    void PrintInfo();
+
     void DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables);
     Camera& GetCamera();
     VkCommandBuffer BeginSingleTimeCommands();
@@ -60,6 +62,7 @@ public:
 
     void createShadowRenderPass();
 
+    void createShadowPipeline();
     //Getters
     VkDevice GetDevice() { return vkDevice.GetDevice(); };
     VkPhysicalDevice GetPhysicalDevice() { return vkDevice.GetPhysicalDevice(); };
@@ -136,19 +139,18 @@ private:
     VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
 
 
-    //To-Do  render pass, pipeline, framebuffer, command buffer
+    //TO-DO
+    VkCommandBuffer shadowCommandBuffer = VK_NULL_HANDLE;
+
     // Shadow map
     VkImage shadowImage = VK_NULL_HANDLE;
     VkImageView shadowImageView = VK_NULL_HANDLE;
     VkDeviceMemory shadowImageMemory = VK_NULL_HANDLE;
     VkSampler shadowSampler = VK_NULL_HANDLE;
-
-    //TO-DO
     VkRenderPass shadowRenderPass = VK_NULL_HANDLE;
     VkPipeline shadowPipeline = VK_NULL_HANDLE;
     VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
     VkFramebuffer shadowFramebuffer = VK_NULL_HANDLE;
-    VkCommandBuffer shadowCommandBuffer = VK_NULL_HANDLE;
 
     const uint32_t SHADOW_MAP_SIZE = 2048;
 };
