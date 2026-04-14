@@ -37,7 +37,6 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     EclipseMathLibrary
-    UntilitedMathLibrary
     GIT_REPOSITORY https://github.com/Kahviz/EclipseMathLibrary
     GIT_TAG master
 )
@@ -175,7 +174,7 @@ set(SHADER_TYPES
 )
 
 
-# Kopioi HLSL-tiedostot build-kansioon (joka kerta)
+# Copy HLSL Files to build-kansioon
 foreach(shader_file ${SHADER_FILES})
     set(source_file "${CMAKE_SOURCE_DIR}/Core/Shaders/${shader_file}")
     
@@ -188,7 +187,6 @@ foreach(shader_file ${SHADER_FILES})
 endforeach()
 
 if(WIN32)
-    # Käännä shaderit CSO-tiedostoiksi
     list(LENGTH SHADER_FILES SHADER_COUNT)
     
     foreach(index RANGE ${SHADER_COUNT})
