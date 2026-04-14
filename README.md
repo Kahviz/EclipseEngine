@@ -1,4 +1,4 @@
-# UntilitedGameEngine
+# EclipseEngine
   A My GameEngine That I have been devoleping since 12.11.2025
   It has two renderers Vulkan- And DirectX11Renderer
   Supports only Windows. Linux support is coming soon!
