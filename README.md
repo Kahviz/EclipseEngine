@@ -1,10 +1,10 @@
-# EclipseEngine
+# BoronEngine
   A My GameEngine That I have been devoleping since 12.11.2025
   It has two renderers Vulkan- And DirectX11Renderer
   Supports only Windows. Linux support is coming soon!
   It's in DEV so it isn't perfect.
 # Libraries That I Used
-  UntilitedGameEngine Uses Assimp to Load Meshes, SDL3 to make controller effects like rumble, ImGui to Make Fantastic GUI and stb_image to load it's icons.
+  BoronEngine Uses Assimp to Load Meshes, SDL3 to make controller effects like rumble, ImGui to Make Fantastic GUI and stb_image to load it's icons.
   
 # How to
   Switch A renderer engine?
