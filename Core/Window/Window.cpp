@@ -43,7 +43,8 @@ void Window::SetWindowIcon(GLFWwindow* window) {
     GLFWimage images[1];
     int width, height, channels;
 
-    std::string fullPath = appData + "/UntilitedGameEngine/Icons/UntilitedIcon.png";
+    std::string fullPath = appData + "/BoronEngine/Icons/BoronEngineIcon.png";
+
     unsigned char* pixels = stbi_load(fullPath.c_str(), &width, &height, &channels, 4);
 
     if (pixels) {
@@ -54,6 +55,9 @@ void Window::SetWindowIcon(GLFWwindow* window) {
 
         glfwSetWindowIcon(window, 1, images);
         stbi_image_free(pixels);
+    }
+    else {
+        MakeAError("Failed to load: " + fullPath);
     }
 }
 

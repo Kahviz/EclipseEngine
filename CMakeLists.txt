@@ -22,7 +22,7 @@ endif()
 find_package(Vulkan REQUIRED)
 
 if(NOT Vulkan_FOUND)
-    message(FATAL_ERROR "Vulkan SDK not found.\nInstall it from https://vulkan.lunarg.com/ or just goto GLOBALS.h and put VULKAN = 0 and DIRECTX11 = 1")
+    message(FATAL_ERROR "Vulkan SDK not found.\nInstall it from https://vulkan.lunarg.com/")
 endif()
 
 message(STATUS "Using Vulkan SDK at: ${Vulkan_INCLUDE_DIRS}")
@@ -37,7 +37,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     EclipseMathLibrary
-    GIT_REPOSITORY https://github.com/Kahviz/EclipseMathLibrary
+    GIT_REPOSITORY https://github.com/Kahviz/BoronMathLibrary
     GIT_TAG master
 )
 

@@ -92,7 +92,7 @@
 		BGE_ASSERT_VKRESULT(VkResult, message, #VkResult)
 	
 #else
-	#define UGE_ASSERT(condition, message) ((void)0)
-	#define UGE_VK_ASSERT(handle, message) ((void)0)
-	#define UGE_ASSERT_VKRESULT(VkResult, message) ((void)0)
+	#define BGE_ASSERT(condition, message) ((void)0)
+	#define BGE_VK_ASSERT(handle, message) ((void)0)
+	#define BGE_ASSERT_VKRESULT(VkResult, message) ((void)0)
 #endif

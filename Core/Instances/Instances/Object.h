@@ -3,15 +3,12 @@
 #include "Services/Raycasting.h"
 
 #include <vector>
-#include <DirectXMath.h>
 #include <string>
 #include "Instances/Instance.h"
-#include "UntilitedMathLibrary.h"
+#include "BoronMathLibrary.h"
 #include <Instances/Vertex.h>
 #include <Instances/Instances/Mesh/Mesh.h>
 #include "Graphics/Texture/Texture.h"
-
-using namespace DirectX;
 
 inline Vector3 LoadWorldVertex(const Vertex& v, const Vector3& objPos, const Vector3& objSize) {
     return Vector3(

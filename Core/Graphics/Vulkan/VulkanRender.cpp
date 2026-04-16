@@ -868,7 +868,9 @@ void VulkanRender::PrintInfo() {
     if (shadowFramebuffer == VK_NULL_HANDLE) {
         MakeAError("shadowFramebuffer is VK_NULL_HANDLE");
     }
-
+    if (shadowCommandBuffer == VK_NULL_HANDLE) {
+        MakeAError("shadowCommandBuffer is VK_NULL_HANDLE");
+    }
     MakeAInfo("Checked all the shadowResources");
 }
 
@@ -1102,7 +1104,16 @@ void VulkanRender::createShadowResources()
     framebufferInfo.layers = 1;
     
     BGE_ASSERT_VKRESULT(vkCreateFramebuffer(vkDevice.GetDevice(), &framebufferInfo, nullptr, &shadowFramebuffer), "Failed to create shadow framebuffer");
+
+    VkCommandBufferAllocateInfo commandAllocInfo{};
+    commandAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandAllocInfo.commandPool = vkCommandBuffer.GetCommandPool();
+    commandAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandAllocInfo.commandBufferCount = 1;
+
+    BGE_ASSERT_VKRESULT(vkAllocateCommandBuffers(vkDevice.GetDevice(), &commandAllocInfo, &shadowCommandBuffer),"Failed to allocate ShadowCommandBuffer");
 }
+
 void VulkanRender::createShadowRenderPass() {
     VkAttachmentDescription depthAttachment{};
     depthAttachment.format = VK_FORMAT_D32_SFLOAT;

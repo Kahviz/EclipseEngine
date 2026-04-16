@@ -9,7 +9,7 @@
 #include <cstring>
 #include <string>
 #include "chrono"
-#include "UntilitedMathLibrary.h"
+#include "BoronMathLibrary.h"
 #include "ScoreCounter.h"
 #include <GLFW/glfw3.h>
 #include "Vulkan/VulkanHelpers.h"
@@ -139,10 +139,8 @@ private:
     VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
 
 
-    //TO-DO
-    VkCommandBuffer shadowCommandBuffer = VK_NULL_HANDLE;
-
     // Shadow map
+    VkCommandBuffer shadowCommandBuffer = VK_NULL_HANDLE;
     VkImage shadowImage = VK_NULL_HANDLE;
     VkImageView shadowImageView = VK_NULL_HANDLE;
     VkDeviceMemory shadowImageMemory = VK_NULL_HANDLE;
