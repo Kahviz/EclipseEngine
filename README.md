@@ -1,4 +1,4 @@
-<img width="720" height="720" alt="BoronEngineIcon" src="https://github.com/user-attachments/assets/7474a87c-c063-4231-ac28-19a865d87842" />
+<img width="320" height="320" alt="BoronEngineIcon" src="https://github.com/user-attachments/assets/7474a87c-c063-4231-ac28-19a865d87842" />
 
 # BoronEngine
   A My GameEngine That I have been devoleping since 12.11.2025
