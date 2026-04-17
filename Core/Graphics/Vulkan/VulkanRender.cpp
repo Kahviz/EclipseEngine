@@ -1149,6 +1149,7 @@ void VulkanRender::createShadowRenderPass() {
         MakeAInfo("shadowRenderpass created!");
     }
 }
+
 void VulkanRender::createShadowPipeline() {
     std::string Shaders = std::string(PROJECT_DIR) + "Core/Shaders/";
     auto vertShaderCode = ReadFile(Shaders + "shadow_vertex.spv");
