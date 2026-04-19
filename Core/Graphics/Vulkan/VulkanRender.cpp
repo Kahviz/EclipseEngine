@@ -689,7 +689,7 @@ void VulkanRender::createDescriptorSets(const Instance* inst) {
     bufferInfo.offset = 0;
     bufferInfo.range = dynamicAlignment;
 
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrites[0].dstSet = descriptorSet;
@@ -700,6 +700,18 @@ void VulkanRender::createDescriptorSets(const Instance* inst) {
     descriptorWrites[0].pBufferInfo = &bufferInfo;
     descriptorWrites[0].pImageInfo = nullptr;
     descriptorWrites[0].pTexelBufferView = nullptr;
+
+    VkDescriptorImageInfo shadowImageInfo{};
+    shadowImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    shadowImageInfo.imageView = shadowImageView;
+    shadowImageInfo.sampler = shadowSampler;
+
+    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[2].dstSet = descriptorSet;
+    descriptorWrites[2].dstBinding = 2;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[2].descriptorCount = 1;
+    descriptorWrites[2].pImageInfo = &shadowImageInfo;
 
     VkDescriptorImageInfo imageInfo{};
     if (texture != nullptr && texture->IsLoadedConst()) {

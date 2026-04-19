@@ -212,13 +212,17 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
     //obj->texture.Load(fullPath, *window.GetGraphics().DR.get());
 #endif
 #if VULKAN == 1
+    obj->texture.LoadVK(fullPath, *window.GetGraphics().VR.get());
+    window.GetGraphics().VR->UpdateDescriptorSet(obj.get()); //Updates DescriptorSets so the texture is loaded in the renderer
+    
+    /*
     if (Name != "Cube2") {
-        obj->texture.LoadVK(fullPath, *window.GetGraphics().VR.get());
-        window.GetGraphics().VR->UpdateDescriptorSet(obj.get()); //Updates DescriptorSets so the texture is loaded in the renderer
+        
     }
     else {
         MakeAError("Making so Cube2 doesnt have texture for showcase! This is a remainder for me! 1F1G");
     }
+    */
 
 #endif
     Instance* objPtr = obj.get();
