@@ -214,7 +214,7 @@ Instance& Engine::AddAMesh(const std::string& Path, const std::string& Name,
 #if VULKAN == 1
     obj->texture.LoadVK(fullPath, *window.GetGraphics().VR.get());
     window.GetGraphics().VR->UpdateDescriptorSet(obj.get()); //Updates DescriptorSets so the texture is loaded in the renderer
-    
+
     /*
     if (Name != "Cube2") {
         

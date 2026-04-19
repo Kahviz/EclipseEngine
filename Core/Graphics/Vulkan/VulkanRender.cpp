@@ -799,6 +799,7 @@ void VulkanRender::updateUniformBuffer(
     }
 
     ubo.view = m_Camera.GetViewMatrix().transposed();
+    ubo.lightSpaceMatrix = lightSpaceMatrix;
 
     float fovY = 45.0f * PI / 180.0f;
     float aspect = (float)screen_width / (float)screen_height;
@@ -873,6 +874,83 @@ void VulkanRender::PrintInfo() {
     MakeAInfo("Checked all the shadowResources");
 }
 
+void VulkanRender::RecordShadowCommandBuffer()
+{
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(shadowCommandBuffer, &beginInfo);
+
+    VkClearValue clearValue{};
+    clearValue.depthStencil = { 1.0f, 0 };
+
+    VkRenderPassBeginInfo rpInfo{};
+    rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpInfo.renderPass = shadowRenderPass;
+    rpInfo.framebuffer = shadowFramebuffer;
+    rpInfo.renderArea.extent = { SHADOW_MAP_SIZE, SHADOW_MAP_SIZE };
+    rpInfo.clearValueCount = 1;
+    rpInfo.pClearValues = &clearValue;
+
+    vkCmdBeginRenderPass(shadowCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBindPipeline(shadowCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
+
+    // Dynamic viewport/scissor (pipeline k‰ytt‰‰ dynamic statet‰)
+    VkViewport viewport{};
+    viewport.width = (float)SHADOW_MAP_SIZE;
+    viewport.height = (float)SHADOW_MAP_SIZE;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(shadowCommandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.extent = { SHADOW_MAP_SIZE, SHADOW_MAP_SIZE };
+    vkCmdSetScissor(shadowCommandBuffer, 0, 1, &scissor);
+
+    struct ShadowPushConstants {
+        Matrix4x4 lightSpaceMatrix;
+        Matrix4x4 model;
+    };
+
+    for (const auto& cmd : shadowDrawCommands)
+    {
+        ShadowPushConstants pc{};
+        pc.lightSpaceMatrix = lightSpaceMatrix;
+        pc.model = cmd.modelMatrix;
+
+        vkCmdPushConstants(
+            shadowCommandBuffer,
+            shadowPipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0, sizeof(ShadowPushConstants), &pc
+        );
+
+        cmd.mesh->Draw(shadowCommandBuffer);
+    }
+
+    vkCmdEndRenderPass(shadowCommandBuffer);
+    vkEndCommandBuffer(shadowCommandBuffer);
+}
+
+inline Matrix4x4 CreateOrthographic(
+    float left, float right,
+    float bottom, float top,
+    float zNear, float zFar)
+{
+    Matrix4x4 result(0.0f);
+
+    result(0, 0) = 2.0f / (right - left);
+    result(1, 1) = 2.0f / (bottom - top);   // k‰‰nteinen Y Vulkanille
+    result(2, 2) = 1.0f / (zFar - zNear);
+    result(3, 0) = -(right + left) / (right - left);
+    result(3, 1) = -(bottom + top) / (bottom - top);
+    result(3, 2) = -zNear / (zFar - zNear);
+    result(3, 3) = 1.0f;
+
+    return result;
+}
+
 void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables)
 {
     static int frames = 0;
@@ -903,6 +981,15 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
         MakeAError("Failed to acquire swapchain image");
         return;
     }
+
+    Vector3 lightDir = Vector3(0.5f, -1.0f, 0.5f).normalized();
+    Vector3 lightPos = lightDir * -50.0f;
+
+    Matrix4x4 lightView = Matrix4x4LookAtLH(lightPos, Vector3(0, 0, 0), Vector3(0, 1, 0));
+    Matrix4x4 lightProj = CreateOrthographic(-50, 50, -50, 50, 0.1f, 200.0f);
+    lightSpaceMatrix = lightProj * lightView;
+
+    RecordShadowCommandBuffer();
 
     if (framebufferResized) {
         framebufferResized = false;
@@ -1160,10 +1247,16 @@ void VulkanRender::createShadowPipeline() {
     vertStage.module = vertShaderModule;
     vertStage.pName = "main";
 
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(ShadowPushConstants);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
     if (vkCreatePipelineLayout(vkDevice.GetDevice(), &pipelineLayoutInfo, nullptr, &shadowPipelineLayout) != VK_SUCCESS) {
         MakeAError("Failed to create shadow pipeline layout!");
@@ -1172,14 +1265,14 @@ void VulkanRender::createShadowPipeline() {
 
     VkVertexInputBindingDescription binding{};
     binding.binding = 0;
-    binding.stride = sizeof(float) * 3;
+    binding.stride = sizeof(Vertex);
     binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     VkVertexInputAttributeDescription attribute{};
     attribute.binding = 0;
     attribute.location = 0;
     attribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    attribute.offset = 0;
+    attribute.offset = offsetof(Vertex, pos);
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

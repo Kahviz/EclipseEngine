@@ -52,6 +52,8 @@ public:
 
     void PrintInfo();
 
+    void RecordShadowCommandBuffer();
+
     void DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instance>>& Drawables);
     Camera& GetCamera();
     VkCommandBuffer BeginSingleTimeCommands();
@@ -78,6 +80,18 @@ public:
     VkCommandPool GetCommandPool() { return vkCommandBuffer.GetCommandPool(); }
     VkQueue GetGraphicsQueue() { return vkDevice.GetGraphicsQueue(); }
 private:
+    struct ShadowPushConstants {
+        Matrix4x4 lightSpaceMatrix;
+        Matrix4x4 model;
+    };
+    struct ShadowDrawCommand {
+        const MeshVK* mesh;
+        Matrix4x4 modelMatrix;
+    };
+    Matrix4x4 lightSpaceMatrix;
+
+    std::vector<ShadowDrawCommand> shadowDrawCommands;
+
     //SubClasses
     VulkanDevice vkDevice;
     VulkanInstance vkInstance;
