@@ -47,6 +47,7 @@ public:
     void UpdateDescriptorSet(const Instance* inst);
     void createDescriptorSets(const Instance* inst = nullptr);
     Matrix4x4 CreateVulkanPerspective(float fovY, float aspect, float zNear, float zFar);
+    Matrix4x4 createModelMatrix(Vector3 orientation, Vector3 scale, Vector3 pos);
     void updateUniformBuffer(const Instance& inst, uint32_t objectIndex, Vector3 scale, Vector3 Orientation, Vector3 pos, Int3 color);
     bool RenderAMesh(const Instance* drawable, Vector3 Orientation, Vector3& pos, Vector3& size, Int3 color, Vector3& Velocity, bool Anchored, float Roughness, float Brightness, int Index);
 

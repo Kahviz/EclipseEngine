@@ -1,9 +1,7 @@
 #include "GLOBALS.h"
-
-#if VULKAN == 1
-
 #include "VulkanRender.h"
 
+#if VULKAN == 1
 #include <cstdint>
 #include <vulkan/vulkan.h>
 #include <iostream>
@@ -28,10 +26,10 @@ bool VulkanRender::Init(GLFWwindow* window)
 
     m_Camera.SetProjectionValues(FOV, Aspect, 0.0f, 1000.0f);
 
-    #ifdef _DEBUG
-        std::cout << "Vulkan Init Started\n";
-    #endif
-    
+#ifdef _DEBUG
+    std::cout << "Vulkan Init Started\n";
+#endif
+
     if (!vkInstance.Init()) {
         MakeAError("A Unexpected error happened on vkInstance.Init");
         return false;
@@ -50,17 +48,17 @@ bool VulkanRender::Init(GLFWwindow* window)
     VkPhysicalDeviceProperties selectedProps;
     vkGetPhysicalDeviceProperties(vkDevice.GetPhysicalDevice(), &selectedProps);
 
-    #ifdef _DEBUG
-        std::cout << "Selected GPU: " << selectedProps.deviceName << "\n";
-    #endif // _DEBUG
+#ifdef _DEBUG
+    std::cout << "Selected GPU: " << selectedProps.deviceName << "\n";
+#endif // _DEBUG
 
-   
+
     uint32_t formatCount = 0;
 
     vkGetPhysicalDeviceSurfaceFormatsKHR(vkDevice.GetPhysicalDevice(), vkDevice.GetSurface(), &formatCount, nullptr);
     std::vector<VkSurfaceFormatKHR> formats(formatCount);
     vkGetPhysicalDeviceSurfaceFormatsKHR(vkDevice.GetPhysicalDevice(), vkDevice.GetSurface(), &formatCount, formats.data());
-     
+
     VkSurfaceFormatKHR surfaceFormat = formats[0];
     for (const auto& availableFormat : formats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -70,12 +68,12 @@ bool VulkanRender::Init(GLFWwindow* window)
         }
     }
 
-    if (!vkSwapchain.Init(vkDevice.GetDevice(),vkDevice.GetPhysicalDevice(), vkDevice.GetSurface())) {
+    if (!vkSwapchain.Init(vkDevice.GetDevice(), vkDevice.GetPhysicalDevice(), vkDevice.GetSurface())) {
         MakeAError("A Unexpected error happened on vkSwapchain.Init");
     }
 
     std::array<VkAttachmentDescription, 2> attachments = {};
-    
+
     // Color attachment
     attachments[0].format = surfaceFormat.format;
     attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
@@ -161,7 +159,7 @@ bool VulkanRender::Init(GLFWwindow* window)
         return false;
     }
 
-    vkSwapchain.GetSwapchainExtent() = vkSwapchain.ChooseSwapchainExtent(vkDevice.GetPhysicalDevice(),vkDevice.GetSurface());
+    vkSwapchain.GetSwapchainExtent() = vkSwapchain.ChooseSwapchainExtent(vkDevice.GetPhysicalDevice(), vkDevice.GetSurface());
     vkSwapchain.GetSwapchainImageFormat() = surfaceFormat.format;
 
     VkPhysicalDeviceProperties props{};
@@ -443,7 +441,7 @@ void VulkanRender::RecreateSwapchain() {
     }
 
     for (size_t i = 0; i < vkCommandBuffer.GetCommandBuffers().size(); i++) {
-        RecordCommandBuffer(static_cast<uint32_t>(i),false);
+        RecordCommandBuffer(static_cast<uint32_t>(i), false);
     }
 }
 
@@ -750,32 +748,15 @@ Matrix4x4 VulkanRender::CreateVulkanPerspective(float fovY, float aspect, float 
     return result;
 }
 
-void VulkanRender::updateUniformBuffer(
-    const Instance& inst,
-    uint32_t objectIndex,
-    Vector3 scale,
-    Vector3 Orientation,
-    Vector3 pos,
-    Int3 color
-)
-{
-    if (objectIndex >= m_CurrentObjectCount)
-    {
-        uint32_t newSize = Max(m_CurrentObjectCount * 2, objectIndex + 1);
-        ReallocateUniformBuffer(newSize);
-        UpdateDescriptorSet(&inst);
-    }
+Matrix4x4 VulkanRender::createModelMatrix(Vector3 orientation, Vector3 scale, Vector3 pos) { //Add to mathlib
+    Matrix4x4 model;
 
-    UniformBufferObject ubo{};
-
-    float cx = cosf(Orientation.x());
-    float sx = sinf(Orientation.x());
-
-    float cy = cosf(Orientation.y());
-    float sy = sinf(Orientation.y());
-
-    float cz = cosf(Orientation.z());
-    float sz = sinf(Orientation.z());
+    float cx = cosf(orientation.x());
+    float sx = sinf(orientation.x());
+    float cy = cosf(orientation.y());
+    float sy = sinf(orientation.y());
+    float cz = cosf(orientation.z());
+    float sz = sinf(orientation.z());
 
     Matrix4x4 rot;
 
@@ -799,24 +780,48 @@ void VulkanRender::updateUniformBuffer(
     rot(3, 2) = 0.0f;
     rot(3, 3) = 1.0f;
 
-    ubo.model.setIdentity();
+    model.setIdentity();
 
-    ubo.model(0, 0) = rot(0, 0) * scale.x();
-    ubo.model(0, 1) = rot(0, 1) * scale.x();
-    ubo.model(0, 2) = rot(0, 2) * scale.x();
+    //Scale
+    model(0, 0) = rot(0, 0) * scale.x();
+    model(0, 1) = rot(0, 1) * scale.x();
+    model(0, 2) = rot(0, 2) * scale.x();
 
-    ubo.model(1, 0) = rot(1, 0) * scale.y();
-    ubo.model(1, 1) = rot(1, 1) * scale.y();
-    ubo.model(1, 2) = rot(1, 2) * scale.y();
+    model(1, 0) = rot(1, 0) * scale.y();
+    model(1, 1) = rot(1, 1) * scale.y();
+    model(1, 2) = rot(1, 2) * scale.y();
 
-    ubo.model(2, 0) = rot(2, 0) * scale.z();
-    ubo.model(2, 1) = rot(2, 1) * scale.z();
-    ubo.model(2, 2) = rot(2, 2) * scale.z();
+    model(2, 0) = rot(2, 0) * scale.z();
+    model(2, 1) = rot(2, 1) * scale.z();
+    model(2, 2) = rot(2, 2) * scale.z();
 
-    ubo.model(3, 0) = pos.x();
-    ubo.model(3, 1) = pos.y();
-    ubo.model(3, 2) = pos.z();
-    ubo.model(3, 3) = 1.0f;
+    //Translaation
+    model(3, 0) = pos.x();
+    model(3, 1) = pos.y();
+    model(3, 2) = pos.z();
+    model(3, 3) = 1.0f;
+
+    return model;
+}
+void VulkanRender::updateUniformBuffer(
+    const Instance& inst,
+    uint32_t objectIndex,
+    Vector3 scale,
+    Vector3 Orientation,
+    Vector3 pos,
+    Int3 color
+)
+{
+    if (objectIndex >= m_CurrentObjectCount)
+    {
+        uint32_t newSize = Max(m_CurrentObjectCount * 2, objectIndex + 1);
+        ReallocateUniformBuffer(newSize);
+        UpdateDescriptorSet(&inst);
+    }
+
+    UniformBufferObject ubo{};
+
+    ubo.model = createModelMatrix(Orientation, scale, pos);
 
     ubo.color = GPUVector3(
         color.x() / 255.0f,
@@ -863,7 +868,7 @@ bool VulkanRender::RenderAMesh(
 
     const MeshVK* meshVK = &drawable->OBJmesh.VM;
 
-    updateUniformBuffer(*drawable ,Index, size, Orientation, pos, color);
+    updateUniformBuffer(*drawable, Index, size, Orientation, pos, color);
 
     DrawCommand cmd;
     cmd.mesh = meshVK;
@@ -929,7 +934,7 @@ void VulkanRender::RecordShadowCommandBuffer()
     vkCmdBeginRenderPass(shadowCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(shadowCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
 
-    // Dynamic viewport/scissor (pipeline k‰ytt‰‰ dynamic statet‰)
+    // Dynamic viewport/scissor
     VkViewport viewport{};
     viewport.width = (float)SHADOW_MAP_SIZE;
     viewport.height = (float)SHADOW_MAP_SIZE;
@@ -1032,7 +1037,7 @@ void VulkanRender::DrawFrame(float DELTATIME, std::vector<std::unique_ptr<Instan
     }
     bool RenderImGui = true;
 
-    RecordCommandBuffer(imageIndex,RenderImGui);
+    RecordCommandBuffer(imageIndex, RenderImGui);
 
     VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
     VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
@@ -1109,7 +1114,7 @@ void VulkanRender::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
         MakeAError("Failed to end command buffer");
         return;
     }
-    
+
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
@@ -1151,7 +1156,7 @@ void VulkanRender::createShadowResources()
     imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    BGE_ASSERT_VKRESULT(vkCreateImage(vkDevice.GetDevice(), &imageinfo, nullptr, &shadowImage),"Failed to create shadowImage");
+    BGE_ASSERT_VKRESULT(vkCreateImage(vkDevice.GetDevice(), &imageinfo, nullptr, &shadowImage), "Failed to create shadowImage");
 
     if (shadowImage == VK_NULL_HANDLE) {
         MakeAError("shadowImage is NULL even though creation succeeded!");
@@ -1208,7 +1213,7 @@ void VulkanRender::createShadowResources()
     samplerInfo.compareOp = VK_COMPARE_OP_LESS;
     samplerInfo.anisotropyEnable = VK_FALSE;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    
+
     if (vkCreateSampler(vkDevice.GetDevice(), &samplerInfo, nullptr, &shadowSampler) != VK_SUCCESS) {
         MakeAError("Failed to create shadow sampler!");
     }
@@ -1221,7 +1226,7 @@ void VulkanRender::createShadowResources()
     framebufferInfo.width = SHADOW_MAP_SIZE;
     framebufferInfo.height = SHADOW_MAP_SIZE;
     framebufferInfo.layers = 1;
-    
+
     BGE_ASSERT_VKRESULT(vkCreateFramebuffer(vkDevice.GetDevice(), &framebufferInfo, nullptr, &shadowFramebuffer), "Failed to create shadow framebuffer");
 
     VkCommandBufferAllocateInfo commandAllocInfo{};
@@ -1230,7 +1235,7 @@ void VulkanRender::createShadowResources()
     commandAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandAllocInfo.commandBufferCount = 1;
 
-    BGE_ASSERT_VKRESULT(vkAllocateCommandBuffers(vkDevice.GetDevice(), &commandAllocInfo, &shadowCommandBuffer),"Failed to allocate ShadowCommandBuffer");
+    BGE_ASSERT_VKRESULT(vkAllocateCommandBuffers(vkDevice.GetDevice(), &commandAllocInfo, &shadowCommandBuffer), "Failed to allocate ShadowCommandBuffer");
 }
 
 void VulkanRender::createShadowRenderPass() {
@@ -1392,7 +1397,7 @@ void VulkanRender::createShadowPipeline() {
     pipelineInfo.renderPass = shadowRenderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-    
+
     if (vkCreateGraphicsPipelines(vkDevice.GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &shadowPipeline) != VK_SUCCESS) {
         MakeAError("Failed to create shadow pipeline!");
     }
